@@ -2,15 +2,15 @@
 
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <h2 class="text-2xl font-bold text-gray-800 mb-1">Welcome back!</h2>
-    <p class="text-gray-400 text-sm mb-7">Sign in to your GTrack account</p>
+    <h2 class="text-xl font-bold text-gray-900 mb-0.5">Sign in</h2>
+    <p class="text-gray-400 text-sm mb-7 font-normal">Enter your credentials to continue</p>
 
     <form method="POST" action="{{ route('login') }}">
         @csrf
 
         {{-- Email --}}
-        <div class="mb-5">
-            <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">Email Address</label>
+        <div class="mb-4">
+            <label for="email" class="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
             <input
                 id="email"
                 type="email"
@@ -20,28 +20,46 @@
                 required
                 autofocus
                 autocomplete="username"
-                class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
             />
             <x-input-error :messages="$errors->get('email')" class="mt-1.5" />
         </div>
 
         {{-- Password --}}
-        <div class="mb-5">
+        <div class="mb-5" x-data="{ show: false }">
             <label for="password" class="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
-            <input
-                id="password"
-                type="password"
-                name="password"
-                placeholder="••••••••"
-                required
-                autocomplete="current-password"
-                class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-800 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
-            />
+            <div class="relative">
+                <input
+                    id="password"
+                    :type="show ? 'text' : 'password'"
+                    name="password"
+                    placeholder="••••••••"
+                    required
+                    autocomplete="current-password"
+                    class="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                />
+                <button
+                    type="button"
+                    @click="show = !show"
+                    :aria-label="show ? 'Hide password' : 'Show password'"
+                    class="absolute inset-y-0 right-0 flex items-center pr-4 text-gray-400 hover:text-gray-600 transition focus:outline-none"
+                >
+                    {{-- Eye (show) --}}
+                    <svg x-show="!show" xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.75-7.5 9.75-7.5 9.75 7.5 9.75 7.5-3.75 7.5-9.75 7.5S2.25 12 2.25 12z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    {{-- Eye-off (hide) --}}
+                    <svg x-show="show" x-cloak xmlns="http://www.w3.org/2000/svg" class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M3.98 8.223A10.477 10.477 0 002.25 12s3.75 7.5 9.75 7.5c1.32 0 2.57-.26 3.72-.72M6.53 6.53A9.96 9.96 0 0112 4.5c6 0 9.75 7.5 9.75 7.5a13.46 13.46 0 01-2.51 3.47M6.53 6.53L3 3m3.53 3.53l3.94 3.94m0 0a3 3 0 104.24 4.24m-4.24-4.24l4.24 4.24m0 0L21 21" />
+                    </svg>
+                </button>
+            </div>
             <x-input-error :messages="$errors->get('password')" class="mt-1.5" />
         </div>
 
         {{-- Remember Me + Forgot Password --}}
-        <div class="flex items-center justify-between mb-7">
+        <div class="flex items-center justify-between mb-6">
             <label for="remember_me" class="inline-flex items-center gap-2 cursor-pointer">
                 <input
                     id="remember_me"
@@ -49,10 +67,10 @@
                     name="remember"
                     class="rounded border-gray-300 text-blue-600 shadow-sm focus:ring-blue-500"
                 />
-                <span class="text-sm text-gray-600">Remember me</span>
+                <span class="text-sm text-gray-500">Remember me</span>
             </label>
             @if (Route::has('password.request'))
-                <a href="{{ route('password.request') }}" class="text-sm font-medium text-blue-600 hover:text-blue-800 transition">
+                <a href="{{ route('password.request') }}" class="text-sm font-medium text-blue-600 hover:text-blue-700 transition">
                     Forgot password?
                 </a>
             @endif
@@ -61,10 +79,10 @@
         {{-- Submit --}}
         <button
             type="submit"
-            class="w-full py-3.5 px-4 rounded-xl font-bold text-white text-base shadow-lg transition duration-200 hover:opacity-90 active:scale-95"
+            class="w-full py-3 px-4 rounded-xl font-semibold text-white text-sm tracking-wide shadow-md transition duration-200 hover:opacity-90 active:scale-95"
             style="background: linear-gradient(90deg, #0070FF 0%, #00AAFF 100%);"
         >
-            Log In
+            Sign In
         </button>
     </form>
 
