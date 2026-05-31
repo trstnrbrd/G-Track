@@ -16,7 +16,7 @@
                 type="email"
                 name="email"
                 value="{{ old('email') }}"
-                placeholder="you@example.com"
+                placeholder="Enter your email"
                 required
                 autofocus
                 autocomplete="username"
@@ -33,7 +33,7 @@
                     id="password"
                     :type="show ? 'text' : 'password'"
                     name="password"
-                    placeholder="••••••••"
+                    placeholder="Enter your password"
                     required
                     autocomplete="current-password"
                     class="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
