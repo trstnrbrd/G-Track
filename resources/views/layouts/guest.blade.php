@@ -11,7 +11,10 @@
         <link rel="apple-touch-icon" href="{{ asset('logo.png') }}">
 
         <link rel="preconnect" href="https://fonts.bunny.net">
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
         <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         {{-- GSAP for entrance + floating animations --}}
@@ -22,6 +25,12 @@
 
         <style>
             body { font-family: 'Inter', sans-serif; }
+
+            /* Fancy display font for headings */
+            h1, h2, h3, .font-display {
+                font-family: 'Bricolage Grotesque', 'Inter', sans-serif;
+                letter-spacing: -0.02em;
+            }
 
             /* Hide until GSAP reveals — only when JS is available */
             html.js body { opacity: 0; }
@@ -69,6 +78,75 @@
                 border-radius: 50%;
                 pointer-events: none;
             }
+
+            /* ===== Brand wordmark (solid, professional) ===== */
+            .brand-wordmark {
+                font-family: 'Inter', sans-serif;
+                font-weight: 800;
+                letter-spacing: -0.045em;
+                line-height: 1;
+                text-shadow: 0 2px 20px rgba(0, 0, 0, 0.18);
+            }
+            .brand-accent {
+                width: 52px;
+                height: 4px;
+                border-radius: 99px;
+                background: linear-gradient(90deg, #22d3ee 0%, #38bdf8 100%);
+                box-shadow: 0 0 12px rgba(56, 189, 248, 0.6);
+            }
+
+            /* ===== Interactive feature list ===== */
+            .feat-item {
+                display: flex;
+                align-items: center;
+                gap: 12px;
+                padding: 9px 12px;
+                border-radius: 12px;
+                color: rgba(219, 234, 254, 0.85);
+                cursor: default;
+                position: relative;
+                transition: transform 0.35s cubic-bezier(0.22, 1, 0.36, 1),
+                            background 0.35s ease, color 0.35s ease;
+            }
+            .feat-item:hover {
+                background: rgba(255, 255, 255, 0.10);
+                transform: translateX(8px);
+                color: #ffffff;
+            }
+            .feat-check {
+                width: 24px;
+                height: 24px;
+                border-radius: 50%;
+                background: rgba(255, 255, 255, 0.15);
+                display: flex;
+                align-items: center;
+                justify-content: center;
+                font-size: 12px;
+                flex-shrink: 0;
+                transition: transform 0.45s cubic-bezier(0.22, 1, 0.36, 1),
+                            background 0.35s ease, color 0.35s ease;
+            }
+            .feat-item:hover .feat-check {
+                background: #ffffff;
+                color: #1d4ed8;
+                transform: scale(1.15) rotate(360deg);
+            }
+            /* Glow accent line that appears on hover */
+            .feat-item::before {
+                content: '';
+                position: absolute;
+                left: 0;
+                top: 50%;
+                width: 3px;
+                height: 0;
+                border-radius: 3px;
+                background: #ffffff;
+                transform: translateY(-50%);
+                transition: height 0.35s ease;
+            }
+            .feat-item:hover::before {
+                height: 60%;
+            }
         </style>
     </head>
     <body class="antialiased">
@@ -86,7 +164,7 @@
                 {{-- Mobile logo (only visible on small screens) --}}
                 <div class="lg:hidden mb-8 text-center relative z-10">
                     <img src="{{ asset('logo.png') }}" alt="GTrack" class="gs-mlogo w-16 h-16 mx-auto mb-3 drop-shadow-sm">
-                    <h1 class="text-gray-900 text-2xl font-bold tracking-tight">GTrack</h1>
+                    <h1 class="brand-wordmark text-gray-900 text-3xl">GTrack</h1>
                     <p class="text-gray-400 text-sm mt-0.5 font-medium">GCash Transaction Manager</p>
                 </div>
 
@@ -111,24 +189,25 @@
                         <div class="logo-glow gs-glow"></div>
                         <img src="{{ asset('logo.png') }}" alt="GTrack" class="gs-logo w-28 h-28 mx-auto drop-shadow-lg relative z-10">
                     </div>
-                    <h2 class="gs-btext text-white text-4xl font-extrabold tracking-tight mb-3">GTrack</h2>
+                    <h2 class="gs-btext brand-wordmark text-white text-5xl mb-3">GTrack</h2>
+                    <div class="gs-btext brand-accent mx-auto mb-5"></div>
                     <p class="gs-btext text-blue-100/90 text-base leading-relaxed max-w-xs mx-auto">
                         Manage your GCash cash-in and cash-out transactions in one place.
                     </p>
 
                     {{-- Mini feature points --}}
-                    <div class="mt-10 space-y-3 text-left max-w-xs mx-auto">
-                        <div class="gs-feat flex items-center gap-3 text-blue-50">
-                            <span class="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center text-xs">✓</span>
-                            <span class="text-sm">Real-time balance tracking</span>
+                    <div class="mt-10 space-y-1.5 text-left max-w-xs mx-auto">
+                        <div class="gs-feat feat-item">
+                            <span class="feat-check">✓</span>
+                            <span class="text-sm font-medium">Real-time balance tracking</span>
                         </div>
-                        <div class="gs-feat flex items-center gap-3 text-blue-50">
-                            <span class="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center text-xs">✓</span>
-                            <span class="text-sm">Automatic service charge computation</span>
+                        <div class="gs-feat feat-item">
+                            <span class="feat-check">✓</span>
+                            <span class="text-sm font-medium">Automatic service charge computation</span>
                         </div>
-                        <div class="gs-feat flex items-center gap-3 text-blue-50">
-                            <span class="w-5 h-5 rounded-full bg-white/15 flex items-center justify-center text-xs">✓</span>
-                            <span class="text-sm">End-of-day reconciliation reports</span>
+                        <div class="gs-feat feat-item">
+                            <span class="feat-check">✓</span>
+                            <span class="text-sm font-medium">End-of-day reconciliation reports</span>
                         </div>
                     </div>
                 </div>
