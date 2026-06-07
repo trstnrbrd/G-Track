@@ -10,11 +10,9 @@
         <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
         <link rel="apple-touch-icon" href="{{ asset('logo.png') }}">
 
-        <link rel="preconnect" href="https://fonts.bunny.net">
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.bunny.net/css?family=inter:400,500,600,700,800&display=swap" rel="stylesheet" />
-        <link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,500;12..96,600;12..96,700;12..96,800&display=swap" rel="stylesheet" />
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         {{-- GSAP for entrance + floating animations --}}
@@ -26,9 +24,8 @@
         <style>
             body { font-family: 'Inter', sans-serif; }
 
-            /* Fancy display font for headings */
             h1, h2, h3, .font-display {
-                font-family: 'Bricolage Grotesque', 'Inter', sans-serif;
+                font-family: 'Inter', sans-serif;
                 letter-spacing: -0.02em;
             }
 
@@ -83,7 +80,7 @@
             .brand-wordmark {
                 font-family: 'Inter', sans-serif;
                 font-weight: 800;
-                letter-spacing: -0.045em;
+                letter-spacing: -0.04em;
                 line-height: 1;
                 text-shadow: 0 2px 20px rgba(0, 0, 0, 0.18);
             }

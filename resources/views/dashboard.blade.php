@@ -37,7 +37,9 @@
                      style="background: linear-gradient(135deg, #0066FF, #2B8CFF);">
                     <div class="absolute w-40 h-40 rounded-full bg-white/10 -top-12 -right-8"></div>
                     <div class="relative flex items-center gap-2 mb-3">
-                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center font-extrabold">G</div>
+                        <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                            <img src="{{ asset('gcashLogo.png') }}" alt="GCash" class="w-6 h-6 object-contain">
+                        </div>
                         <span class="text-blue-50 text-sm font-medium">GCash Balance</span>
                     </div>
                     <p class="relative text-3xl font-bold">₱0.00</p>
@@ -47,8 +49,8 @@
                      style="background: linear-gradient(135deg, #15a34a, #22c55e);">
                     <div class="absolute w-40 h-40 rounded-full bg-white/10 -top-12 -right-8"></div>
                     <div class="relative flex items-center gap-2 mb-3">
-                        <div class="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center">
-                            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6M3.75 6h16.5a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5v-9A1.5 1.5 0 013.75 6z"/></svg>
+                        <div class="w-10 h-10 rounded-full bg-white flex items-center justify-center shadow-sm shrink-0">
+                            <img src="{{ asset('cashLogo.png') }}" alt="Cash" class="w-6 h-6 object-contain">
                         </div>
                         <span class="text-green-50 text-sm font-medium">On Hand Cash</span>
                     </div>
@@ -144,15 +146,15 @@
         <div class="px-5 -mt-16 relative z-10">
             <div class="grid grid-cols-2 gap-3">
                 <div class="js-rise bg-white rounded-2xl shadow-lg p-4">
-                    <div class="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center mb-2">
-                        <span class="text-blue-600 font-extrabold text-sm">G</span>
+                    <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center mb-2 shadow-sm ring-1 ring-gray-100">
+                        <img src="{{ asset('gcashLogo.png') }}" alt="GCash" class="w-5 h-5 object-contain">
                     </div>
                     <p class="text-gray-400 text-xs font-medium">GCash Balance</p>
                     <p class="text-gray-900 text-lg font-bold mt-0.5">₱0.00</p>
                 </div>
                 <div class="js-rise bg-white rounded-2xl shadow-lg p-4">
-                    <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center mb-2">
-                        <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6M3.75 6h16.5a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5v-9A1.5 1.5 0 013.75 6z"/></svg>
+                    <div class="w-9 h-9 rounded-full bg-white flex items-center justify-center mb-2 shadow-sm ring-1 ring-gray-100">
+                        <img src="{{ asset('cashLogo.png') }}" alt="Cash" class="w-5 h-5 object-contain">
                     </div>
                     <p class="text-gray-400 text-xs font-medium">On Hand Cash</p>
                     <p class="text-gray-900 text-lg font-bold mt-0.5">₱0.00</p>

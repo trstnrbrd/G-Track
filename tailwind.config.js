@@ -13,7 +13,7 @@ export default {
         extend: {
             fontFamily: {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],
-                display: ['Bricolage Grotesque', 'Inter', ...defaultTheme.fontFamily.sans],
+                display: ['Inter', ...defaultTheme.fontFamily.sans],
             },
         },
     },

@@ -11,7 +11,7 @@
     h2,
     h3,
     .font-display {
-        font-family: "Bricolage Grotesque", "Inter", sans-serif;
+        font-family: "Inter", sans-serif;
         letter-spacing: -0.02em;
     }
 }
@@ -20,7 +20,7 @@
 .brand-wordmark {
     font-family: "Inter", sans-serif;
     font-weight: 800;
-    letter-spacing: -0.045em;
+    letter-spacing: -0.04em;
 }
 
 /* ===== Sleek minimal scrollbar ===== */
