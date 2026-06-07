@@ -5,17 +5,20 @@
 /* ===== Global typography (shared across login + all app pages) ===== */
 @layer base {
     body {
-        font-family: 'Inter', sans-serif;
+        font-family: "Inter", sans-serif;
     }
-    h1, h2, h3, .font-display {
-        font-family: 'Bricolage Grotesque', 'Inter', sans-serif;
+    h1,
+    h2,
+    h3,
+    .font-display {
+        font-family: "Bricolage Grotesque", "Inter", sans-serif;
         letter-spacing: -0.02em;
     }
 }
 
 /* Solid, professional brand wordmark */
 .brand-wordmark {
-    font-family: 'Inter', sans-serif;
+    font-family: "Inter", sans-serif;
     font-weight: 800;
     letter-spacing: -0.045em;
 }

@@ -33,7 +33,7 @@
 
             {{-- Balance cards (2 large) --}}
             <div class="grid grid-cols-2 gap-5 mb-5">
-                <div class="rounded-2xl p-6 text-white shadow-lg relative overflow-hidden"
+                <div class="js-rise rounded-2xl p-6 text-white shadow-lg relative overflow-hidden"
                      style="background: linear-gradient(135deg, #0066FF, #2B8CFF);">
                     <div class="absolute w-40 h-40 rounded-full bg-white/10 -top-12 -right-8"></div>
                     <div class="relative flex items-center gap-2 mb-3">
@@ -43,7 +43,7 @@
                     <p class="relative text-3xl font-bold">₱0.00</p>
                 </div>
 
-                <div class="rounded-2xl p-6 text-white shadow-lg relative overflow-hidden"
+                <div class="js-rise rounded-2xl p-6 text-white shadow-lg relative overflow-hidden"
                      style="background: linear-gradient(135deg, #15a34a, #22c55e);">
                     <div class="absolute w-40 h-40 rounded-full bg-white/10 -top-12 -right-8"></div>
                     <div class="relative flex items-center gap-2 mb-3">
@@ -68,7 +68,7 @@
                     ];
                 @endphp
                 @foreach ($stats as [$label, $value, $iconBg, $iconText, $path])
-                    <div class="bg-white rounded-2xl shadow-sm p-5 flex items-center gap-3.5">
+                    <div class="js-rise bg-white rounded-2xl shadow-sm p-5 flex items-center gap-3.5">
                         <div class="w-11 h-11 rounded-full {{ $iconBg }} flex items-center justify-center shrink-0">
                             <svg class="w-5 h-5 {{ $iconText }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $path }}"/></svg>
                         </div>
@@ -82,7 +82,7 @@
 
             {{-- Bottom: transactions (wide) + actions --}}
             <div class="grid grid-cols-3 gap-5">
-                <div class="col-span-2 bg-white rounded-2xl shadow-sm p-6">
+                <div class="js-rise col-span-2 bg-white rounded-2xl shadow-sm p-6">
                     <div class="flex items-center justify-between mb-4">
                         <h2 class="text-gray-800 text-lg font-bold">Recent Transactions</h2>
                         <a href="#" class="text-blue-600 text-sm font-semibold hover:text-blue-800 transition">View All</a>
@@ -96,7 +96,7 @@
                     </div>
                 </div>
 
-                <div class="space-y-4">
+                <div class="js-rise space-y-4">
                     <h2 class="text-gray-800 text-lg font-bold">Quick Actions</h2>
                     <button class="w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-white shadow-md active:scale-95 transition"
                             style="background: linear-gradient(135deg, #16a34a, #22c55e);">
@@ -143,14 +143,14 @@
         {{-- Balance cards --}}
         <div class="px-5 -mt-16 relative z-10">
             <div class="grid grid-cols-2 gap-3">
-                <div class="bg-white rounded-2xl shadow-lg p-4">
+                <div class="js-rise bg-white rounded-2xl shadow-lg p-4">
                     <div class="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center mb-2">
                         <span class="text-blue-600 font-extrabold text-sm">G</span>
                     </div>
                     <p class="text-gray-400 text-xs font-medium">GCash Balance</p>
                     <p class="text-gray-900 text-lg font-bold mt-0.5">₱0.00</p>
                 </div>
-                <div class="bg-white rounded-2xl shadow-lg p-4">
+                <div class="js-rise bg-white rounded-2xl shadow-lg p-4">
                     <div class="w-9 h-9 rounded-full bg-green-100 flex items-center justify-center mb-2">
                         <svg class="w-5 h-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6M3.75 6h16.5a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5v-9A1.5 1.5 0 013.75 6z"/></svg>
                     </div>
@@ -164,7 +164,7 @@
         <div class="px-5 mt-5">
             <div class="grid grid-cols-2 gap-3">
                 @foreach ($stats ?? [] as [$label, $value, $iconBg, $iconText, $path])
-                    <div class="bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
+                    <div class="js-rise bg-white rounded-2xl shadow-sm p-4 flex items-center gap-3">
                         <div class="w-10 h-10 rounded-full {{ $iconBg }} flex items-center justify-center shrink-0">
                             <svg class="w-5 h-5 {{ $iconText }}" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="{{ $path }}"/></svg>
                         </div>
@@ -180,12 +180,12 @@
         {{-- Quick actions --}}
         <div class="px-5 mt-5">
             <div class="grid grid-cols-2 gap-3">
-                <button class="flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-white shadow-md active:scale-95 transition"
+                <button class="js-rise flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-white shadow-md active:scale-95 transition"
                         style="background: linear-gradient(135deg, #16a34a, #22c55e);">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/></svg>
                     Cash In
                 </button>
-                <button class="flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-white shadow-md active:scale-95 transition"
+                <button class="js-rise flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-white shadow-md active:scale-95 transition"
                         style="background: linear-gradient(135deg, #2563eb, #3b82f6);">
                     <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.2"><path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15"/></svg>
                     Cash Out
@@ -199,7 +199,7 @@
                 <h2 class="text-gray-800 text-base font-bold">Recent Transactions</h2>
                 <a href="#" class="text-blue-600 text-sm font-semibold hover:text-blue-800 transition">View All</a>
             </div>
-            <div class="bg-white rounded-2xl shadow-sm py-12 px-6 flex flex-col items-center text-center">
+            <div class="js-rise bg-white rounded-2xl shadow-sm py-12 px-6 flex flex-col items-center text-center">
                 <div class="w-14 h-14 rounded-full bg-gray-100 flex items-center justify-center mb-3">
                     <svg class="w-7 h-7 text-gray-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M9 17.25v1.007a3 3 0 01-.879 2.122L7.5 21h9l-.621-.621A3 3 0 0115 18.257V17.25m6-12V15a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 15V5.25m18 0A2.25 2.25 0 0018.75 3H5.25A2.25 2.25 0 003 5.25m18 0V12a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 12V5.25"/></svg>
                 </div>

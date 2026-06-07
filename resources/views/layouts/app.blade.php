@@ -20,6 +20,24 @@
 
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
+
+        {{-- Entrance animation (inline so it applies before first paint, even in Vite dev mode) --}}
+        <style>
+            @keyframes gtRise {
+                from { opacity: 0; transform: translateY(18px); }
+                to   { opacity: 1; transform: translateY(0); }
+            }
+            .js-rise {
+                opacity: 0;
+                animation: gtRise 0.55s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+            }
+            .js-rise:nth-child(1) { animation-delay: 0.05s; }
+            .js-rise:nth-child(2) { animation-delay: 0.12s; }
+            .js-rise:nth-child(3) { animation-delay: 0.19s; }
+            .js-rise:nth-child(4) { animation-delay: 0.26s; }
+            .js-rise:nth-child(5) { animation-delay: 0.33s; }
+            .js-rise:nth-child(6) { animation-delay: 0.40s; }
+        </style>
     </head>
     <body class="antialiased bg-gray-50">
         @include('partials.loader')
@@ -65,31 +83,18 @@
             <nav class="flex-1 px-3 py-4 space-y-1 overflow-y-auto">
                 @foreach ($nav as $item)
                     <a href="{{ $item['url'] }}"
-                       class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition
+                       class="group flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 ease-out
                               {{ $item['active']
-                                  ? 'bg-blue-50 text-blue-600'
-                                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800' }}">
-                        <svg class="w-5 h-5 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                  ? 'bg-blue-50 text-blue-600 shadow-sm'
+                                  : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800 hover:translate-x-1' }}">
+                        <svg class="w-5 h-5 shrink-0 transition-transform duration-200 group-hover:scale-110 {{ $item['active'] ? '' : 'group-hover:text-blue-500' }}"
+                             fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
                             <path stroke-linecap="round" stroke-linejoin="round" d="{{ $item['icon'] }}"/>
                         </svg>
                         {{ $item['label'] }}
                     </a>
                 @endforeach
             </nav>
-
-            {{-- Bottom: user info --}}
-            <div class="border-t border-gray-100 p-3">
-                <div class="flex items-center gap-3 px-2 py-2">
-                    <div class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white shrink-0"
-                         style="background: linear-gradient(135deg, #0066FF, #00A6FF);">
-                        {{ strtoupper(substr($firstName, 0, 1)) }}
-                    </div>
-                    <div class="min-w-0">
-                        <p class="text-sm font-semibold text-gray-800 truncate">{{ Auth::user()->name }}</p>
-                        <p class="text-xs text-gray-400 capitalize">{{ str_replace('_', ' ', Auth::user()->role) }}</p>
-                    </div>
-                </div>
-            </div>
         </aside>
 
         {{-- ===== Main area ===== --}}
@@ -101,20 +106,44 @@
 
                 {{-- Account dropdown --}}
                 <div x-data="{ open: false }" class="relative">
-                    <button @click="open = !open" class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white"
+                    <button @click="open = !open"
+                            class="w-9 h-9 rounded-full flex items-center justify-center font-bold text-white shadow-sm transition duration-200 hover:scale-105 active:scale-95 hover:shadow-md focus:outline-none focus:ring-2 focus:ring-blue-300 focus:ring-offset-2"
+                            :class="open ? 'ring-blue-400' : 'ring-blue-300'"
+                            :aria-expanded="open"
+                            aria-haspopup="true"
                             style="background: linear-gradient(135deg, #0066FF, #00A6FF);">
                         {{ strtoupper(substr($firstName, 0, 1)) }}
                     </button>
-                    <div x-show="open" x-cloak @click.outside="open = false" x-transition
-                         class="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-xl ring-1 ring-black/5 py-1.5 z-40">
-                        <div class="px-4 py-2 border-b border-gray-100">
+                    <div x-show="open" x-cloak @click.outside="open = false"
+                         x-transition:enter="transition ease-out duration-200"
+                         x-transition:enter-start="opacity-0 scale-95 -translate-y-2"
+                         x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave="transition ease-in duration-150"
+                         x-transition:leave-start="opacity-100 scale-100 translate-y-0"
+                         x-transition:leave-end="opacity-0 scale-95 -translate-y-2"
+                         class="absolute right-0 mt-2 w-52 bg-white rounded-xl shadow-xl ring-1 ring-black/5 py-1.5 z-40 origin-top-right">
+                        <div class="px-4 py-2.5 border-b border-gray-100">
                             <p class="text-sm font-semibold text-gray-800 truncate">{{ Auth::user()->name }}</p>
                             <p class="text-xs text-gray-400 capitalize">{{ str_replace('_', ' ', Auth::user()->role) }}</p>
                         </div>
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <button type="submit" class="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition">Log out</button>
-                        </form>
+                        <div class="py-1">
+                            {{-- Settings --}}
+                            <a href="#" class="group flex items-center gap-2.5 px-4 py-2 text-sm text-gray-600 hover:bg-gray-50 hover:text-gray-900 transition">
+                                <svg class="w-4 h-4 text-gray-400 group-hover:text-gray-600 transition-transform duration-300 group-hover:rotate-90" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M9.594 3.94c.09-.542.56-.94 1.11-.94h2.593c.55 0 1.02.398 1.11.94l.213 1.281c.063.374.313.686.645.87.074.04.147.083.22.127.324.196.72.257 1.075.124l1.217-.456a1.125 1.125 0 011.37.49l1.296 2.247a1.125 1.125 0 01-.26 1.431l-1.003.827c-.293.24-.438.613-.43.992a6.759 6.759 0 010 .255c-.008.378.137.75.43.991l1.004.827c.424.35.534.955.26 1.43l-1.298 2.247a1.125 1.125 0 01-1.369.491l-1.217-.456c-.355-.133-.75-.072-1.076.124a6.57 6.57 0 01-.22.128c-.331.183-.581.495-.644.869l-.213 1.28c-.09.543-.56.941-1.11.941h-2.594c-.55 0-1.02-.398-1.11-.94l-.213-1.281c-.062-.374-.312-.686-.644-.87a6.52 6.52 0 01-.22-.127c-.325-.196-.72-.257-1.076-.124l-1.217.456a1.125 1.125 0 01-1.369-.49l-1.297-2.247a1.125 1.125 0 01.26-1.431l1.004-.827c.292-.24.437-.613.43-.991a6.932 6.932 0 010-.255c.007-.38-.138-.751-.43-.992l-1.004-.827a1.125 1.125 0 01-.26-1.43l1.297-2.247a1.125 1.125 0 011.37-.491l1.216.456c.356.133.751.072 1.076-.124.072-.044.146-.087.22-.128.332-.183.582-.495.644-.869l.214-1.281z"/>
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/>
+                                </svg>
+                                Settings
+                            </a>
+                            {{-- Log out (opens confirmation modal) --}}
+                            <button type="button" @click="open = false; $dispatch('open-logout')"
+                                    class="group w-full flex items-center gap-2.5 px-4 py-2 text-sm text-red-600 hover:bg-red-50 transition">
+                                <svg class="w-4 h-4 transition-transform duration-200 group-hover:translate-x-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                                    <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+                                </svg>
+                                Log out
+                            </button>
+                        </div>
                     </div>
                 </div>
             </header>
@@ -179,5 +208,51 @@
                 </button>
             </nav>
         </div>
+
+        {{-- ===== Logout confirmation modal ===== --}}
+        <div x-data="{ open: false }" @open-logout.window="open = true" x-show="open" x-cloak
+             @keydown.escape.window="open = false"
+             class="fixed inset-0 z-[60] flex items-center justify-center p-4">
+
+            {{-- Overlay --}}
+            <div x-show="open" x-transition.opacity
+                 @click="open = false"
+                 class="absolute inset-0 bg-black/50 backdrop-blur-sm"></div>
+
+            {{-- Dialog --}}
+            <div x-show="open"
+                 x-transition:enter="transition ease-out duration-200"
+                 x-transition:enter-start="opacity-0 scale-95 translate-y-3"
+                 x-transition:enter-end="opacity-100 scale-100 translate-y-0"
+                 x-transition:leave="transition ease-in duration-150"
+                 x-transition:leave-start="opacity-100 scale-100"
+                 x-transition:leave-end="opacity-0 scale-95"
+                 class="relative bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 text-center">
+
+                <div class="w-14 h-14 rounded-full bg-red-50 flex items-center justify-center mx-auto mb-4">
+                    <svg class="w-7 h-7 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75"/>
+                    </svg>
+                </div>
+
+                <h3 class="text-lg font-bold text-gray-900 mb-1">Log out?</h3>
+                <p class="text-sm text-gray-500 mb-6">Are you sure you want to log out of your account?</p>
+
+                <div class="flex gap-3">
+                    <button type="button" @click="open = false"
+                            class="flex-1 py-2.5 rounded-xl font-semibold text-gray-600 bg-gray-100 hover:bg-gray-200 transition active:scale-95">
+                        Cancel
+                    </button>
+                    <form method="POST" action="{{ route('logout') }}" class="flex-1">
+                        @csrf
+                        <button type="submit"
+                                class="w-full py-2.5 rounded-xl font-semibold text-white bg-red-500 hover:bg-red-600 shadow-md transition active:scale-95">
+                            Log out
+                        </button>
+                    </form>
+                </div>
+            </div>
+        </div>
+
     </body>
 </html>
