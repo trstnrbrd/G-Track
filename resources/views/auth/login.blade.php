@@ -5,7 +5,7 @@
     <h2 class="text-xl font-bold text-gray-900 mb-0.5">Sign in</h2>
     <p class="text-gray-400 text-sm mb-7 font-normal">Enter your credentials to continue</p>
 
-    <form method="POST" action="{{ route('login') }}">
+    <form method="POST" action="{{ route('login') }}" x-data="loginForm()" @submit="onSubmit($event)" novalidate>
         @csrf
 
         {{-- Email --}}
@@ -15,28 +15,34 @@
                 id="email"
                 type="email"
                 name="email"
-                value="{{ old('email') }}"
+                x-model="email"
+                @input="errors.email = ''"
                 placeholder="Enter your email"
-                required
                 autofocus
                 autocomplete="username"
-                class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                class="w-full px-4 py-3 rounded-xl border bg-gray-50 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                :class="errors.email ? 'border-red-400 ring-1 ring-red-200' : 'border-gray-200'"
             />
+            {{-- Client-side validation message --}}
+            <p x-show="errors.email" x-cloak x-text="errors.email" class="flex items-center gap-1 text-red-500 text-xs mt-1.5 font-medium"></p>
+            {{-- Server-side validation message --}}
             <x-input-error :messages="$errors->get('email')" class="mt-1.5" />
         </div>
 
         {{-- Password --}}
-        <div class="mb-5" x-data="{ show: false }">
+        <div class="mb-5">
             <label for="password" class="block text-sm font-semibold text-gray-700 mb-1.5">Password</label>
             <div class="relative">
                 <input
                     id="password"
                     :type="show ? 'text' : 'password'"
                     name="password"
+                    x-model="password"
+                    @input="errors.password = ''"
                     placeholder="Enter your password"
-                    required
                     autocomplete="current-password"
-                    class="w-full px-4 py-3 pr-12 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    class="w-full px-4 py-3 pr-12 rounded-xl border bg-gray-50 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                    :class="errors.password ? 'border-red-400 ring-1 ring-red-200' : 'border-gray-200'"
                 />
                 <button
                     type="button"
@@ -55,6 +61,7 @@
                     </svg>
                 </button>
             </div>
+            <p x-show="errors.password" x-cloak x-text="errors.password" class="flex items-center gap-1 text-red-500 text-xs mt-1.5 font-medium"></p>
             <x-input-error :messages="$errors->get('password')" class="mt-1.5" />
         </div>
 
@@ -85,5 +92,34 @@
             Sign In
         </button>
     </form>
+
+    <script>
+        function loginForm() {
+            return {
+                email: @js(old('email', '')),
+                password: '',
+                show: false,
+                errors: {},
+                onSubmit(e) {
+                    this.errors = {};
+
+                    if (! this.email.trim()) {
+                        this.errors.email = 'Please enter your email address.';
+                    } else if (! /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(this.email.trim())) {
+                        this.errors.email = 'Please enter a valid email address.';
+                    }
+
+                    if (! this.password) {
+                        this.errors.password = 'Please enter your password.';
+                    }
+
+                    if (Object.keys(this.errors).length > 0) {
+                        e.preventDefault();
+                        e.stopPropagation();   // keep the global loader/spinner from firing
+                    }
+                },
+            };
+        }
+    </script>
 
 </x-guest-layout>

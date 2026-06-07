@@ -8,7 +8,7 @@
     {{-- Session Status --}}
     <x-auth-session-status class="mb-4" :status="session('status')" />
 
-    <form method="POST" action="{{ route('password.email') }}">
+    <form method="POST" action="{{ route('password.email') }}" x-data="forgotForm()" @submit="onSubmit($event)" novalidate>
         @csrf
 
         {{-- Email --}}
@@ -18,12 +18,14 @@
                 id="email"
                 type="email"
                 name="email"
-                value="{{ old('email') }}"
-                placeholder="you@example.com"
-                required
+                x-model="email"
+                @input="error = ''"
+                placeholder="Enter your email"
                 autofocus
-                class="w-full px-4 py-3 rounded-xl border border-gray-200 bg-gray-50 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                class="w-full px-4 py-3 rounded-xl border bg-gray-50 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition"
+                :class="error ? 'border-red-400 ring-1 ring-red-200' : 'border-gray-200'"
             />
+            <p x-show="error" x-cloak x-text="error" class="flex items-center gap-1 text-red-500 text-xs mt-1.5 font-medium"></p>
             <x-input-error :messages="$errors->get('email')" class="mt-1.5" />
         </div>
 
@@ -47,4 +49,26 @@
         </a>
     </div>
 
+    <script>
+        function forgotForm() {
+            return {
+                email: @js(old('email', '')),
+                error: '',
+                onSubmit(e) {
+                    this.error = '';
+                    if (! this.email.trim()) {
+                        this.error = 'Please enter your email address.';
+                    } else if (! /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(this.email.trim())) {
+                        this.error = 'Please enter a valid email address.';
+                    }
+                    if (this.error) {
+                        e.preventDefault();
+                        e.stopPropagation();   // keep the global loader/spinner from firing
+                    }
+                },
+            };
+        }
+    </script>
+
 </x-guest-layout>
+

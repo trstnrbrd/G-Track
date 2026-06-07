@@ -19,6 +19,9 @@
         <!-- Scripts -->
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
+        {{-- SweetAlert2 for alerts & confirmations --}}
+        <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
         {{-- Entrance animation (inline so it applies before first paint, even in Vite dev mode) --}}
         <style>
             @keyframes gtRise {
@@ -252,5 +255,13 @@
             </div>
         </div>
 
+        {{-- Fire any server-side SweetAlert flashed from a controller --}}
+        @if (session('swal'))
+            <script>
+                document.addEventListener('DOMContentLoaded', function () {
+                    Swal.fire(Object.assign({ confirmButtonColor: '#0066FF' }, @json(session('swal'))));
+                });
+            </script>
+        @endif
     </body>
 </html>
