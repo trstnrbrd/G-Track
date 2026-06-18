@@ -1,59 +1,144 @@
-<p align="center"><a href="https://laravel.com" target="_blank"><img src="https://raw.githubusercontent.com/laravel/art/master/logo-lockup/5%20SVG/2%20CMYK/1%20Full%20Color/laravel-logolockup-cmyk-red.svg" width="400" alt="Laravel Logo"></a></p>
+# GTrack
 
-<p align="center">
-<a href="https://github.com/laravel/framework/actions"><img src="https://github.com/laravel/framework/workflows/tests/badge.svg" alt="Build Status"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/dt/laravel/framework" alt="Total Downloads"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/v/laravel/framework" alt="Latest Stable Version"></a>
-<a href="https://packagist.org/packages/laravel/framework"><img src="https://img.shields.io/packagist/l/laravel/framework" alt="License"></a>
-</p>
+A web-based GCash transaction management system for a sari-sari store that also operates as a GCash agent. It replaces the manual paper logbook — tracking cash-in / cash-out transactions, service charges, GCash and on-hand cash balances, and end-of-day reconciliation.
 
-## About Laravel
+Built with **Laravel 12**, **Blade**, **Tailwind CSS**, **Alpine.js**, and **MySQL**.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable and creative experience to be truly fulfilling. Laravel takes the pain out of development by easing common tasks used in many web projects, such as:
+---
 
-- [Simple, fast routing engine](https://laravel.com/docs/routing).
-- [Powerful dependency injection container](https://laravel.com/docs/container).
-- Multiple back-ends for [session](https://laravel.com/docs/session) and [cache](https://laravel.com/docs/cache) storage.
-- Expressive, intuitive [database ORM](https://laravel.com/docs/eloquent).
-- Database agnostic [schema migrations](https://laravel.com/docs/migrations).
-- [Robust background job processing](https://laravel.com/docs/queues).
-- [Real-time event broadcasting](https://laravel.com/docs/broadcasting).
+## Setup guide (fresh machine)
 
-Laravel is accessible, powerful, and provides tools required for large, robust applications.
+Follow these steps to run GTrack on a new laptop.
 
-## Learning Laravel
+### 1. Install the prerequisites
 
-Laravel has the most extensive and thorough [documentation](https://laravel.com/docs) and video tutorial library of all modern web application frameworks, making it a breeze to get started with the framework. You can also check out [Laravel Learn](https://laravel.com/learn), where you will be guided through building a modern Laravel application.
+Install these first (one-time):
 
-If you don't feel like reading, [Laracasts](https://laracasts.com) can help. Laracasts contains thousands of video tutorials on a range of topics including Laravel, modern PHP, unit testing, and JavaScript. Boost your skills by digging into our comprehensive video library.
+| Tool | Notes |
+|------|-------|
+| **XAMPP** | Gives you MySQL + phpMyAdmin + PHP. Make sure PHP is **8.2 or higher**. |
+| **Composer** | PHP package manager — https://getcomposer.org |
+| **Node.js + npm** | LTS version — https://nodejs.org |
+| **Git** | https://git-scm.com |
+| **VS Code** | Recommended editor. Also install the *Laravel Blade* extension. |
 
-## Laravel Sponsors
+### 2. Clone the project
 
-We would like to extend our thanks to the following sponsors for funding Laravel development. If you are interested in becoming a sponsor, please visit the [Laravel Partners program](https://partners.laravel.com).
+```bash
+git clone https://github.com/trstnrbrd/G-Track.git gtrack
+cd gtrack
+```
 
-### Premium Partners
+### 3. Install dependencies
 
-- **[Vehikl](https://vehikl.com)**
-- **[Tighten Co.](https://tighten.co)**
-- **[Kirschbaum Development Group](https://kirschbaumdevelopment.com)**
-- **[64 Robots](https://64robots.com)**
-- **[Curotec](https://www.curotec.com/services/technologies/laravel)**
-- **[DevSquad](https://devsquad.com/hire-laravel-developers)**
-- **[Redberry](https://redberry.international/laravel-development)**
-- **[Active Logic](https://activelogic.com)**
+```bash
+composer install      # PHP packages (creates vendor/)
+npm install           # JS packages (creates node_modules/)
+```
 
-## Contributing
+### 4. Create the environment file
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](https://laravel.com/docs/contributions).
+```bash
+copy .env.example .env      # Windows
+# cp .env.example .env       # macOS / Linux
 
-## Code of Conduct
+php artisan key:generate
+```
 
-In order to ensure that the Laravel community is welcoming to all, please review and abide by the [Code of Conduct](https://laravel.com/docs/contributions#code-of-conduct).
+The `.env` is already set up for MySQL with database name `gtrack`, user `root`, no password (the XAMPP default). If your MySQL uses a different user/password, edit `DB_USERNAME` / `DB_PASSWORD` in `.env`.
 
-## Security Vulnerabilities
+### 5. Set up the database
 
-If you discover a security vulnerability within Laravel, please send an e-mail to Taylor Otwell via [taylor@laravel.com](mailto:taylor@laravel.com). All security vulnerabilities will be promptly addressed.
+1. Open the **XAMPP Control Panel** and **Start** MySQL (and Apache if you want phpMyAdmin).
+2. In **phpMyAdmin** (http://localhost/phpmyadmin), create a new database named **`gtrack`**.
+3. Run the migrations and seeder:
 
-## License
+```bash
+php artisan migrate --seed
+```
 
-The Laravel framework is open-sourced software licensed under the [MIT license](https://opensource.org/licenses/MIT).
+This creates all the tables and seeds the login account + starting balance row.
+
+### 6. Run the app
+
+Open **two terminals** in the project folder:
+
+```bash
+# Terminal 1 — Laravel server
+php artisan serve
+
+# Terminal 2 — Vite (compiles CSS/JS, with hot reload)
+npm run dev
+```
+
+Then open: **http://127.0.0.1:8000/login**
+
+### 7. Log in
+
+| Field | Value |
+|-------|-------|
+| Email | `admin@gtrack.com` |
+| Password | `gtrack2026` |
+
+> The login account and balance row come from the database seeder (`database/seeders/DatabaseSeeder.php`).
+
+---
+
+## Daily run (after the first setup)
+
+You don't repeat the install every time — just:
+
+1. Start **MySQL** in XAMPP.
+2. `php artisan serve` (terminal 1)
+3. `npm run dev` (terminal 2)
+4. Open http://127.0.0.1:8000
+
+---
+
+## Viewing on your phone (same Wi-Fi)
+
+```bash
+npm run build                                  # compile assets once
+php artisan serve --host=0.0.0.0 --port=8000   # expose to the network
+```
+
+Find your PC's local IP (`ipconfig` on Windows → IPv4 Address), then on your phone open `http://<PC-IP>:8000`. Make sure both devices are on the same Wi-Fi and allow the connection through Windows Firewall.
+
+---
+
+## Working together with Git
+
+So changes don't collide:
+
+```bash
+git pull                       # always pull the latest before you start
+# ... make your changes ...
+git add -A
+git commit -m "describe what you changed"
+git push
+```
+
+Tip: work on separate branches (e.g. `frontend` and `backend`) and merge via Pull Requests to avoid conflicts.
+
+---
+
+## Troubleshooting
+
+| Problem | Fix |
+|---------|-----|
+| `SQLSTATE[HY000] [2002]... refused` | MySQL isn't running — start it in XAMPP. |
+| `Database 'gtrack' doesn't exist` | Create the `gtrack` database in phpMyAdmin. |
+| Page has no styling | `npm run dev` isn't running, or run `npm run build`. |
+| `No application encryption key` | Run `php artisan key:generate`. |
+| Composer/PHP version error | Make sure PHP is 8.2+ (check XAMPP's PHP version). |
+| Styles/JS changes not showing | Hard refresh (Ctrl + Shift + R); if on a build, run `npm run build`. |
+
+---
+
+## Tech stack
+
+- **Backend:** Laravel 12 (PHP 8.2+)
+- **Frontend:** Blade, Tailwind CSS, Alpine.js, SweetAlert2
+- **Build:** Vite
+- **Database:** MySQL
+- **Auth:** Laravel Breeze (single super_admin; no public registration)
