@@ -13,6 +13,14 @@ Route::get('/dashboard', [DashboardController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('dashboard');
 
+Route::get('/history', function () {
+    return view('history');
+})->middleware(['auth', 'verified'])->name('history');
+
+Route::get('/balance', function () {
+    return view('balance');
+})->middleware(['auth', 'verified'])->name('balance');
+
 Route::middleware('auth')->group(function () {
     // Daily session (Start Day / End Day)
     Route::post('/day/start', [DailySessionController::class, 'start'])->name('day.start');
