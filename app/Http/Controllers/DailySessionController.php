@@ -22,12 +22,24 @@ class DailySessionController extends Controller
             ]);
         }
 
-        $balance = Balance::current();
+        // Starting balances entered by the owner in the Start Day modal.
+        $validated = $request->validate([
+            'starting_gcash' => ['required', 'numeric', 'gt:0'],
+            'starting_cash' => ['required', 'numeric', 'gt:0'],
+        ]);
 
+        // Set the live balances to the entered starting values (reflects on the dashboard).
+        $balance = Balance::current();
+        $balance->update([
+            'gcash_balance' => $validated['starting_gcash'],
+            'cash_balance' => $validated['starting_cash'],
+        ]);
+
+        // Record them as this session's opening balances.
         DailySession::create([
             'user_id' => $request->user()->id,
-            'opening_gcash_balance' => $balance->gcash_balance,
-            'opening_cash_balance' => $balance->cash_balance,
+            'opening_gcash_balance' => $validated['starting_gcash'],
+            'opening_cash_balance' => $validated['starting_cash'],
             'status' => 'active',
             'started_at' => now(),
         ]);
@@ -56,6 +68,7 @@ class DailySessionController extends Controller
 
         $balance = Balance::current();
 
+        // Record the closing balances on the session (kept for history / reconciliation).
         $session->update([
             'closing_gcash_balance' => $balance->gcash_balance,
             'closing_cash_balance' => $balance->cash_balance,
@@ -63,10 +76,16 @@ class DailySessionController extends Controller
             'ended_at' => now(),
         ]);
 
+        // Reset the live balances to zero — the day is over.
+        $balance->update([
+            'gcash_balance' => 0,
+            'cash_balance' => 0,
+        ]);
+
         return back()->with('swal', [
             'icon' => 'success',
             'title' => 'Day Ended',
-            'text' => 'The session has been closed.',
+            'text' => 'The session has been closed and balances were reset.',
         ]);
     }
 }

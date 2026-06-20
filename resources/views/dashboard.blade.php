@@ -19,6 +19,8 @@
     {{-- Hidden form that Start Day / End Day submits (action depends on current state) --}}
     <form id="day-form" method="POST" action="{{ $sessionActive ? route('day.end') : route('day.start') }}" class="hidden">
         @csrf
+        <input type="hidden" name="starting_gcash" id="form-starting-gcash">
+        <input type="hidden" name="starting_cash" id="form-starting-cash">
     </form>
 
     {{-- ============================================================ --}}
@@ -488,16 +490,16 @@
                 },
                 buttonsStyling: false,
                 preConfirm: () => {
-                    const gcash = document.getElementById('starting_gcash').value;
-                    const cash = document.getElementById('starting_cash').value;
+                    const gcash = parseFloat(document.getElementById('starting_gcash').value);
+                    const cash = parseFloat(document.getElementById('starting_cash').value);
 
-                    if (!gcash || !cash) {
+                    if (isNaN(gcash) || isNaN(cash)) {
                         Swal.showValidationMessage('Please enter both starting balances');
                         return false;
                     }
 
-                    if (parseFloat(gcash) < 0 || parseFloat(cash) < 0) {
-                        Swal.showValidationMessage('Balances cannot be negative');
+                    if (gcash <= 0 || cash <= 0) {
+                        Swal.showValidationMessage('Both starting balances must be greater than ₱0');
                         return false;
                     }
 
@@ -505,8 +507,9 @@
                 }
             }).then((result) => {
                 if (result.isConfirmed) {
-                    // For now, just submit the form (backend already handles it)
-                    // In the future, you can append these values to the form if needed
+                    // Pass the entered starting balances to the backend
+                    document.getElementById('form-starting-gcash').value = result.value.gcash;
+                    document.getElementById('form-starting-cash').value = result.value.cash;
                     document.getElementById('day-form').submit();
                 }
             });

@@ -119,7 +119,7 @@
                     {{ $slot }}
                 </div>
 
-                <p class="mt-10 text-gray-300 text-xs an-rise d4">© {{ date('Y') }} GTrack by Tristan Reboredo</p>
+                <p class="mt-10 text-gray-300 text-xs an-rise d4">© {{ date('Y') }} GTrack by Tristan &amp; Lhenna</p>
             </div>
         </div>
     </body>
