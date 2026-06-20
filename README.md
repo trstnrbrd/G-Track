@@ -10,17 +10,56 @@ Built with **Laravel 12**, **Blade**, **Tailwind CSS**, **Alpine.js**, and **MyS
 
 Follow these steps to run GTrack on a new laptop.
 
-### 1. Install the prerequisites
+### 1. Install the prerequisites (Windows, via the console)
 
-Install these first (one-time):
+These commands use **winget**, the package manager built into Windows 10/11. Open **PowerShell** and run them.
 
-| Tool | Notes |
-|------|-------|
-| **XAMPP** | Gives you MySQL + phpMyAdmin + PHP. Make sure PHP is **8.2 or higher**. |
-| **Composer** | PHP package manager — https://getcomposer.org |
-| **Node.js + npm** | LTS version — https://nodejs.org |
-| **Git** | https://git-scm.com |
-| **VS Code** | Recommended editor. Also install the *Laravel Blade* extension. |
+**First, check what you already have** (if a version prints, it's installed — skip that one):
+
+```powershell
+git --version
+node --version
+npm --version
+php --version
+composer --version
+```
+
+**Install whatever is missing:**
+
+```powershell
+# Git
+winget install Git.Git
+
+# Node.js + npm (LTS)
+winget install OpenJS.NodeJS.LTS
+
+# PHP + MySQL + phpMyAdmin (XAMPP, PHP 8.2+)
+winget install ApacheFriends.Xampp.8.2
+#   If that ID isn't found, run:  winget search xampp
+#   ...or download from https://www.apachefriends.org (choose PHP 8.2+)
+
+# Composer (PHP package manager — install AFTER PHP/XAMPP)
+winget install Composer.Composer
+#   If it errors, download https://getcomposer.org/Composer-Setup.exe
+```
+
+**Add PHP to your PATH** so the `php` command works in any terminal:
+
+```powershell
+[Environment]::SetEnvironmentVariable("Path", $env:Path + ";C:\xampp\php", "User")
+```
+*(Change `C:\xampp\php` if XAMPP is installed elsewhere.)*
+
+**Close and reopen PowerShell / VS Code** (so the new PATH loads), then verify everything:
+
+```powershell
+git --version
+node --version
+php --version
+composer --version
+```
+
+> Also install the **Laravel Blade** extension in VS Code for syntax highlighting.
 
 ### 2. Clone the project
 
@@ -131,6 +170,7 @@ Tip: work on separate branches (e.g. `frontend` and `backend`) and merge via Pul
 | Page has no styling | `npm run dev` isn't running, or run `npm run build`. |
 | `No application encryption key` | Run `php artisan key:generate`. |
 | Composer/PHP version error | Make sure PHP is 8.2+ (check XAMPP's PHP version). |
+| `composer install` fails: *zip extension and unzip/7z commands are both missing* | Enable the `zip` extension: open `C:\xampp\php\php.ini`, change `;extension=zip` to `extension=zip`, save, then re-run `composer install`. Verify with `php -m \| findstr zip`. |
 | Styles/JS changes not showing | Hard refresh (Ctrl + Shift + R); if on a build, run `npm run build`. |
 
 ---
