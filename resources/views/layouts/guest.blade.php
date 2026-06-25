@@ -7,8 +7,10 @@
         <title>GTrack</title>
 
         {{-- Favicon --}}
-        <link rel="icon" type="image/png" href="{{ asset('logo.png') }}">
-        <link rel="apple-touch-icon" href="{{ asset('logo.png') }}">
+        <link rel="icon" type="image/png" sizes="32x32" href="{{ asset('logo.png') }}?v={{ time() }}">
+        <link rel="icon" type="image/png" sizes="16x16" href="{{ asset('logo.png') }}?v={{ time() }}">
+        <link rel="apple-touch-icon" sizes="180x180" href="{{ asset('logo.png') }}?v={{ time() }}">
+        <link rel="shortcut icon" href="{{ asset('logo.png') }}?v={{ time() }}">
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>

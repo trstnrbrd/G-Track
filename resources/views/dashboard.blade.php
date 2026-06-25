@@ -113,16 +113,16 @@
                 <h2 class="text-gray-800 text-lg font-bold">Quick Actions</h2>
                 <button type="button" onclick="cashAction('cash_in')" class="w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-white shadow-md active:scale-95 transition"
                         style="background: linear-gradient(135deg, #16a34a, #22c55e);">
-                    <div class="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
-                        <span class="text-green-600 font-bold text-sm">₱</span>
-                    </div>
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                    </svg>
                     Cash In
                 </button>
                 <button type="button" onclick="cashAction('cash_out')" class="w-full flex items-center justify-center gap-2 py-4 rounded-2xl font-bold text-white shadow-md active:scale-95 transition"
                         style="background: linear-gradient(135deg, #2563eb, #3b82f6);">
-                    <div class="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
-                        <img src="{{ asset('gcashLogo.png') }}" alt="GCash" class="w-4 h-4 object-contain">
-                    </div>
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15"/>
+                    </svg>
                     Cash Out
                 </button>
             </div>
@@ -210,16 +210,16 @@
             <div class="grid grid-cols-2 gap-3">
                 <button type="button" onclick="cashAction('cash_in')" class="js-rise flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-white shadow-md active:scale-95 transition"
                         style="background: linear-gradient(135deg, #16a34a, #22c55e);">
-                    <div class="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
-                        <span class="text-green-600 font-bold text-sm">₱</span>
-                    </div>
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 4.5v15m7.5-7.5h-15"/>
+                    </svg>
                     Cash In
                 </button>
                 <button type="button" onclick="cashAction('cash_out')" class="js-rise flex items-center justify-center gap-2 py-3.5 rounded-2xl font-bold text-white shadow-md active:scale-95 transition"
                         style="background: linear-gradient(135deg, #2563eb, #3b82f6);">
-                    <div class="w-6 h-6 rounded-full bg-white flex items-center justify-center shrink-0">
-                        <img src="{{ asset('gcashLogo.png') }}" alt="GCash" class="w-4 h-4 object-contain">
-                    </div>
+                    <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M19.5 12h-15"/>
+                    </svg>
                     Cash Out
                 </button>
             </div>
