@@ -92,3 +92,33 @@ html {
         animation-duration: 1.2s;
     }
 }
+
+/* ===== iOS safe areas =====
+   On notched iPhones the home indicator overlaps anything pinned to the bottom
+   of the screen. These read the device's own inset, which is 0px on every other
+   device — so they are safe to apply unconditionally.
+
+   Requires `viewport-fit=cover` on the viewport meta tag, otherwise the browser
+   reports every inset as 0 and these do nothing.
+
+   This matters most once GTrack is installed to the Home Screen as a PWA: in
+   standalone mode there is no browser chrome absorbing the gap. */
+
+/* Pin a fixed bottom bar clear of the home indicator. */
+.pb-safe {
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+/* Give scrolling page content room to clear BOTH the tab bar and the
+   indicator, so the last row is never trapped underneath. */
+.pb-safe-nav {
+    padding-bottom: calc(5.5rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* A bottom sheet keeps its own breathing room and adds the inset on top.
+   Note these classes ADD to a base value rather than replacing one — they are
+   defined after Tailwind's utilities, so pairing `pb-8 pb-safe` would let
+   pb-safe win and collapse the padding to 0 on non-notched devices. */
+.pb-safe-sheet {
+    padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+}

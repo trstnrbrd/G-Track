@@ -33,6 +33,25 @@ class DashboardController extends Controller
             $recent = (clone $base)->latest()->take(8)->get();
         }
 
-        return view('dashboard', compact('balance', 'session', 'stats', 'recent'));
+        // The modal renders its rate guide and live preview from the same
+        // brackets the server charges from — never a second hardcoded copy.
+        $chargeBrackets = config('gtrack.service_charge_brackets');
+
+        // Suki customers use the same number every week. Offering the ones we
+        // have seen before turns the most tedious field into a tap.
+        $knownCustomers = Transaction::query()
+            ->whereNotNull('mobile_number')
+            ->select('mobile_number')
+            ->distinct()
+            ->latest('id')
+            ->limit(50)
+            ->pluck('mobile_number');
+
+        $quickAmounts = config('gtrack.quick_amounts');
+
+        return view('dashboard', compact(
+            'balance', 'session', 'stats', 'recent',
+            'chargeBrackets', 'knownCustomers', 'quickAmounts',
+        ));
     }
 }

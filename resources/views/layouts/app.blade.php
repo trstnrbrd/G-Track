@@ -2,7 +2,7 @@
 <html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
     <head>
         <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
         <title>{{ config('app.name', 'GTrack') }}</title>
@@ -162,7 +162,7 @@
                      x-transition:enter-start="translate-y-full" x-transition:enter-end="translate-y-0"
                      x-transition:leave="transition ease-in duration-200"
                      x-transition:leave-start="translate-y-0" x-transition:leave-end="translate-y-full"
-                     class="absolute bottom-0 inset-x-0 bg-white rounded-t-3xl p-4 pb-8">
+                     class="absolute bottom-0 inset-x-0 bg-white rounded-t-3xl p-4 pb-safe-sheet">
                     <div class="w-10 h-1 bg-gray-200 rounded-full mx-auto mb-4"></div>
                     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide px-2 mb-2">More</p>
                     @foreach ($moreNav as $item)
@@ -179,7 +179,7 @@
             </div>
 
             {{-- Tab bar --}}
-            <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 z-40 flex">
+            <nav class="fixed bottom-0 inset-x-0 bg-white border-t border-gray-100 z-40 flex pb-safe">
                 @foreach ($primaryNav as $item)
                     <a href="{{ $item['url'] }}"
                        class="relative flex-1 flex flex-col items-center justify-center gap-1 py-2.5 transition

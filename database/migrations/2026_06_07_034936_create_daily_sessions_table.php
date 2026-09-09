@@ -18,8 +18,11 @@ return new class extends Migration
             $table->decimal('closing_gcash_balance', 14, 2)->nullable();
             $table->decimal('closing_cash_balance', 14, 2)->nullable();
             $table->enum('status', ['active', 'closed'])->default('active');
-            $table->timestamp('started_at');
-            $table->timestamp('ended_at')->nullable();
+            // dateTime, not timestamp: MySQL silently attaches
+            // ON UPDATE current_timestamp() to the first NOT NULL timestamp
+            // column, which would rewrite started_at on every save.
+            $table->dateTime('started_at');
+            $table->dateTime('ended_at')->nullable();
             $table->timestamps();
         });
     }
