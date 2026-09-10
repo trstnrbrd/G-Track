@@ -26,7 +26,7 @@
          x-transition:leave="transition ease-in duration-150"
          x-transition:leave-start="opacity-100 scale-100"
          x-transition:leave-end="opacity-0 scale-95"
-         class="relative bg-white rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] overflow-y-auto p-6">
+         class="relative bg-surface rounded-2xl shadow-2xl w-full max-w-md max-h-[92vh] overflow-y-auto p-6">
 
         <div class="flex items-center justify-between mb-4">
             <h3 class="text-xl font-bold text-gray-900" x-text="mode === 'cash_in' ? 'Cash In' : 'Cash Out'"></h3>
@@ -55,11 +55,11 @@
                     <input type="tel" name="mobile_number" x-model="mobile" inputmode="numeric"
                         list="known-customers" autocomplete="off"
                         placeholder="09xxxxxxxxx" maxlength="13"
-                        class="w-full px-3 py-2 pr-9 border rounded-lg focus:ring-2 transition"
+                        class="w-full px-3 py-2 pr-9 border rounded-lg focus:ring-2 transition font-mono"
                         :class="mobileError
                             ? 'border-red-400 focus:ring-red-400 focus:border-red-400'
                             : (mobileValid ? 'border-green-400 focus:ring-green-400 focus:border-green-400'
-                                           : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500')">
+                                           : 'border-gray-300 focus:ring-gcash-500 focus:border-gcash-500')">
 
                     {{-- Live status: a tick once the number is usable, a warning while it isn't. --}}
                     <span x-show="mobileValid" x-cloak class="absolute right-3 top-1/2 -translate-y-1/2 text-green-500">
@@ -92,7 +92,7 @@
                         class="w-full pl-8 pr-3 py-2 border rounded-lg focus:ring-2 transition"
                         :class="amountError
                             ? 'border-red-400 focus:ring-red-400 focus:border-red-400'
-                            : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'">
+                            : 'border-gray-300 focus:ring-gcash-500 focus:border-gcash-500'">
                 </div>
 
                 {{-- Most transactions at the counter are round numbers. --}}
@@ -100,8 +100,8 @@
                     @foreach ($quickAmounts as $quick)
                         <button type="button" @click="amount = {{ $quick }}"
                                 :class="Number(amount) === {{ $quick }}
-                                    ? 'bg-blue-600 text-white border-blue-600'
-                                    : 'bg-white text-gray-600 border-gray-200 hover:border-blue-300 hover:text-blue-600'"
+                                    ? 'bg-gcash-600 text-white border-gcash-600'
+                                    : 'bg-surface text-gray-600 border-gray-200 hover:border-gcash-300 hover:text-gcash-600'"
                                 class="px-2.5 py-1 rounded-lg border text-xs font-semibold transition active:scale-95">
                             ₱{{ number_format($quick) }}
                         </button>
@@ -116,8 +116,8 @@
                  all four real-world scenarios. --}}
             <div>
                 <label class="flex items-center justify-between text-sm font-medium text-gray-700 mb-1.5">
-                    <span>Service Charge &middot; <span class="text-blue-600 font-bold" x-text="peso(fee)"></span></span>
-                    <button type="button" @click="showRates = ! showRates" class="text-xs text-blue-600 hover:text-blue-800 font-normal">
+                    <span>Service Charge &middot; <span class="text-gcash-600 font-bold" x-text="peso(fee)"></span></span>
+                    <button type="button" @click="showRates = ! showRates" class="text-xs text-gcash-600 hover:text-gcash-800 font-normal">
                         <span x-text="showRates ? 'Hide rates' : 'View rates'"></span>
                     </button>
                 </label>
@@ -126,8 +126,8 @@
                     <template x-for="option in chargeOptions" :key="option.value">
                         <button type="button" @click="chargePaidIn = option.value"
                                 :class="chargePaidIn === option.value
-                                    ? 'border-blue-500 bg-blue-50 text-blue-900'
-                                    : 'border-gray-200 bg-white text-gray-600 hover:border-gray-300'"
+                                    ? 'border-gcash-500 bg-gcash-50 text-gcash-900'
+                                    : 'border-gray-200 bg-surface text-gray-600 hover:border-gray-300'"
                                 class="text-left px-3 py-2.5 rounded-xl border-2 transition">
                             <span class="block text-xs font-bold" x-text="option.label"></span>
                             <span class="block text-[11px] mt-0.5 opacity-70" x-text="option.hint"></span>
@@ -137,9 +137,9 @@
                 <input type="hidden" name="charge_paid_in" :value="chargePaidIn">
                 @error('charge_paid_in')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
 
-                <div x-show="showRates" x-cloak class="mt-2 p-3 bg-blue-50 border border-blue-200 rounded-lg">
-                    <p class="text-xs font-semibold text-blue-900 mb-2">Service Charge Rates</p>
-                    <div class="text-xs text-blue-800 space-y-1">
+                <div x-show="showRates" x-cloak class="mt-2 p-3 bg-gcash-50 border border-gcash-200 rounded-lg">
+                    <p class="text-xs font-semibold text-gcash-900 mb-2">Service Charge Rates</p>
+                    <div class="text-xs text-gcash-800 space-y-1">
                         <template x-for="row in rateRows" :key="row.label">
                             <div class="flex justify-between">
                                 <span x-text="row.label"></span>
@@ -160,10 +160,10 @@
                 </label>
                 <input type="text" name="reference_number" x-model="reference"
                     placeholder="GCash reference number" maxlength="50"
-                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 transition"
+                    class="w-full px-3 py-2 border rounded-lg focus:ring-2 transition font-mono placeholder:font-sans"
                     :class="referenceError
                         ? 'border-red-400 focus:ring-red-400 focus:border-red-400'
-                        : 'border-gray-300 focus:ring-blue-500 focus:border-blue-500'">
+                        : 'border-gray-300 focus:ring-gcash-500 focus:border-gcash-500'">
 
                 <p x-show="referenceError" x-cloak class="mt-1 text-xs text-red-600" x-text="referenceError"></p>
                 @error('reference_number')<p class="mt-1 text-xs text-red-600">{{ $message }}</p>@enderror
@@ -187,7 +187,7 @@
                     </div>
                     <div class="flex items-center justify-between pt-1.5 border-t border-gray-200">
                         <span class="text-gray-500 text-xs">You earn</span>
-                        <span class="font-bold text-blue-600 tabular-nums" x-text="peso(fee)"></span>
+                        <span class="font-bold text-gcash-600 tabular-nums" x-text="peso(fee)"></span>
                     </div>
                 </div>
 
@@ -207,7 +207,7 @@
                 <button type="submit"
                         :disabled="! amount || !! amountError || !! shortfall || mobileBlocks || referenceBlocks || submitting"
                         class="flex-1 py-2.5 rounded-xl font-semibold text-white shadow-md transition active:scale-95 disabled:opacity-40 disabled:cursor-not-allowed disabled:active:scale-100"
-                        :class="mode === 'cash_in' ? 'bg-green-600 hover:bg-green-700' : 'bg-blue-600 hover:bg-blue-700'">
+                        :class="mode === 'cash_in' ? 'bg-cash-600 hover:bg-cash-700' : 'bg-gcash-600 hover:bg-gcash-700'">
                     <span x-text="submitting ? 'Recording…' : 'Record Transaction'"></span>
                 </button>
             </div>

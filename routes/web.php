@@ -29,6 +29,10 @@ Route::get('/user-management', function () {
     return view('user-management');
 })->middleware(['auth', 'verified'])->name('user-management');
 
+Route::get('/settings', function () {
+    return view('settings');
+})->middleware(['auth', 'verified'])->name('settings');
+
 Route::middleware('auth')->group(function () {
     // Daily session (Start Day / End Day)
     Route::post('/day/start', [DailySessionController::class, 'start'])->name('day.start');

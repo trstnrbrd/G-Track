@@ -14,14 +14,13 @@
 
         <link rel="preconnect" href="https://fonts.googleapis.com">
         <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet" />
+        {{-- Variable fonts: one request covers every weight. The families are named
+             in tailwind.config.js, the single source of truth. --}}
+        <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100..900&family=Geist+Mono:wght@100..900&display=swap" rel="stylesheet" />
         @vite(['resources/css/app.css', 'resources/js/app.js'])
 
         <style>
-            body { font-family: 'Inter', sans-serif; }
-
             .brand-wordmark {
-                font-family: 'Inter', sans-serif;
                 font-weight: 800;
                 letter-spacing: -0.045em;
             }

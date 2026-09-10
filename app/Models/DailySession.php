@@ -92,10 +92,14 @@ class DailySession extends Model
             return null;
         }
 
-        $minutes = $this->started_at->diffInMinutes($this->ended_at ?? now());
+        // Carbon 3 returns a signed float here (e.g. 492.9 or -480.0), not an
+        // int. Truncate to whole minutes: intdiv() and % need ints, and passing
+        // them a float is deprecated.
+        $minutes = (int) $this->started_at->diffInMinutes($this->ended_at ?? now());
 
         // A clock that runs backwards means the row is corrupt rather than the
-        // day being short — say so plainly instead of printing "-480m".
+        // day being short — say so plainly instead of printing "-480m". (This
+        // relies on Carbon 3's result being signed.)
         if ($minutes < 0) {
             return null;
         }

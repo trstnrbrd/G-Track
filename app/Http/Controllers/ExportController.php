@@ -4,21 +4,19 @@ namespace App\Http\Controllers;
 
 use App\Models\DailySession;
 use App\Models\Transaction;
+use Barryvdh\DomPDF\Facade\Pdf;
+use Barryvdh\DomPDF\PDF as PdfDocument; // aliased: PHP class names are case-insensitive, so `PDF` collides with the `Pdf` facade
+use Carbon\CarbonInterface;
 use Illuminate\Contracts\Database\Eloquent\Builder;
 use Illuminate\Http\Request;
-use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Http\Response;
 
 class ExportController extends Controller
 {
     /**
-     * CSV exports for History and Balance.
-     *
-     * Streamed rather than built in memory: a shop running for a year will have
-     * tens of thousands of transactions, and loading them all to build one
-     * string would exhaust PHP's memory limit on the kind of machine this runs
-     * on. `chunk()` keeps only 500 rows in memory at a time.
+     * PDF of the History page — exactly the rows its current filters show.
      */
-    public function transactions(Request $request): StreamedResponse
+    public function transactions(Request $request): Response
     {
         $filters = $request->validate([
             'range' => ['nullable', 'in:today,week,month,all,custom'],
@@ -28,92 +26,176 @@ class ExportController extends Controller
             'to' => ['nullable', 'date', 'after_or_equal:from'],
         ]);
 
-        $query = Transaction::query()->with('user');
+        $query = Transaction::query();
         $this->applyTransactionFilters($query, $filters);
 
-        return $this->stream('gtrack-transactions-'.now()->format('Y-m-d').'.csv', [
-            'Date', 'Time', 'Type', 'Mobile Number', 'Amount',
-            'Service Charge', 'Charge Paid In', 'Reference Number', 'Recorded By',
-        ], function () use ($query) {
-            foreach ($query->orderBy('created_at')->orderBy('id')->cursor() as $txn) {
-                yield [
-                    $txn->created_at->format('Y-m-d'),
-                    $txn->created_at->format('g:i A'),
-                    $txn->isCashIn() ? 'Cash In' : 'Cash Out',
-                    $txn->mobile_number,
-                    number_format((float) $txn->amount, 2, '.', ''),
-                    number_format((float) $txn->service_charge, 2, '.', ''),
-                    $txn->charge_paid_in === 'gcash' ? 'GCash' : 'Cash',
-                    $txn->reference_number,
-                    $txn->user?->name,
-                ];
-            }
-        });
+        // Totals cover EVERY matching row, even when the table below is capped —
+        // a total that silently stopped at the cap would be wrong.
+        $summary = [
+            'cash_in' => (float) (clone $query)->where('type', Transaction::TYPE_CASH_IN)->sum('amount'),
+            'cash_out' => (float) (clone $query)->where('type', Transaction::TYPE_CASH_OUT)->sum('amount'),
+            'service_charge' => (float) (clone $query)->sum('service_charge'),
+            'count' => (clone $query)->count(),
+        ];
+
+        $rows = (clone $query)
+            ->with('user')
+            ->orderBy('created_at')
+            ->orderBy('id')
+            ->limit($this->maxRows())
+            ->get();
+
+        return $this->pdf('exports.transactions', [
+            'title' => 'Transaction History',
+            'scope' => $this->describeTransactionScope($filters),
+            'rows' => $rows,
+            'summary' => $summary,
+        ], 'gtrack-transactions-'.now()->format('Y-m-d').'.pdf');
     }
 
-    public function sessions(Request $request): StreamedResponse
+    /**
+     * PDF of the Balance page — one row per day in the selected range.
+     */
+    public function sessions(Request $request): Response
     {
         $range = $request->validate([
             'range' => ['nullable', 'in:week,month,last30,all'],
         ])['range'] ?? 'week';
 
-        $query = DailySession::query()->withCount('transactions')->withSum('transactions', 'service_charge');
+        $inRange = DailySession::query();
 
         match ($range) {
-            'week' => $query->where('started_at', '>=', now()->startOfWeek()),
-            'month' => $query->where('started_at', '>=', now()->startOfMonth()),
-            'last30' => $query->where('started_at', '>=', now()->subDays(30)),
+            'week' => $inRange->where('started_at', '>=', now()->startOfWeek()),
+            'month' => $inRange->where('started_at', '>=', now()->startOfMonth()),
+            'last30' => $inRange->where('started_at', '>=', now()->subDays(30)),
             default => null,
         };
 
-        return $this->stream('gtrack-daily-balances-'.now()->format('Y-m-d').'.csv', [
-            'Date', 'Opened', 'Closed', 'Duration', 'Status',
-            'Cash Opening', 'Cash Closing', 'GCash Opening', 'GCash Closing',
-            'Transactions', 'Earned',
-        ], function () use ($query) {
-            foreach ($query->orderBy('started_at')->cursor() as $session) {
-                yield [
-                    $session->started_at->format('Y-m-d'),
-                    $session->started_at->format('g:i A'),
-                    $session->ended_at?->format('g:i A') ?? '',
-                    $session->duration() ?? '',
-                    // An auto-closed day was never counted by a human — the
-                    // export must not present a guess as a verified figure.
-                    $session->auto_closed ? 'Auto-closed' : ($session->isActive() ? 'Active' : 'Closed'),
-                    number_format((float) $session->opening_cash_balance, 2, '.', ''),
-                    $session->closing_cash_balance === null ? '' : number_format((float) $session->closing_cash_balance, 2, '.', ''),
-                    number_format((float) $session->opening_gcash_balance, 2, '.', ''),
-                    $session->closing_gcash_balance === null ? '' : number_format((float) $session->closing_gcash_balance, 2, '.', ''),
-                    $session->transactions_count,
-                    number_format((float) ($session->transactions_sum_service_charge ?? 0), 2, '.', ''),
-                ];
-            }
-        });
+        $sessionIds = (clone $inRange)->select('id');
+
+        $totals = [
+            'days' => (clone $inRange)->count(),
+            'transactions' => Transaction::whereIn('daily_session_id', $sessionIds)->count(),
+            'earned' => (float) Transaction::whereIn('daily_session_id', $sessionIds)->sum('service_charge'),
+        ];
+
+        $rows = (clone $inRange)
+            ->withCount('transactions')
+            ->withSum('transactions', 'service_charge')
+            ->orderBy('started_at')
+            ->limit($this->maxRows())
+            ->get();
+
+        return $this->pdf('exports.sessions', [
+            'title' => 'Daily Balance Summary',
+            'scope' => match ($range) {
+                'week' => 'This week · '.$this->span(now()->startOfWeek(), now()),
+                'month' => 'This month · '.now()->format('F Y'),
+                'last30' => 'Last 30 days · '.$this->span(now()->subDays(30), now()),
+                default => 'All time',
+            },
+            'rows' => $rows,
+            'totals' => $totals,
+        ], 'gtrack-daily-balances-'.now()->format('Y-m-d').'.pdf');
     }
 
     /**
-     * @param  array<int, string>  $headers
-     * @param  callable(): \Generator<array<int, mixed>>  $rows
+     * The most table rows a PDF will lay out. See config/gtrack.php for the
+     * memory measurements behind the number.
      */
-    private function stream(string $filename, array $headers, callable $rows): StreamedResponse
+    private function maxRows(): int
     {
-        return response()->streamDownload(function () use ($headers, $rows) {
-            $handle = fopen('php://output', 'w');
+        return (int) config('gtrack.export_max_rows');
+    }
 
-            // Excel assumes the system codepage unless a UTF-8 BOM says otherwise,
-            // which is what turns the peso sign into mojibake.
-            fwrite($handle, "\xEF\xBB\xBF");
+    private function pdf(string $view, array $data, string $filename): Response
+    {
+        $pdf = Pdf::loadView($view, $data + [
+            'maxRows' => $this->maxRows(),
+            'generatedAt' => now(),
+            'generatedBy' => auth()->user()?->name,
+        ])
+            ->setPaper('a4', 'landscape')
+            // Embed only the glyphs actually used. Without this, dompdf embeds
+            // the whole DejaVu font family and a one-page report is 1.1 MB.
+            ->setOption('isFontSubsettingEnabled', true);
 
-            fputcsv($handle, $headers);
+        $this->stampPageNumbers($pdf);
 
-            foreach ($rows() as $row) {
-                fputcsv($handle, $row);
-            }
+        return $pdf->download($filename);
+    }
 
-            fclose($handle);
-        }, $filename, [
-            'Content-Type' => 'text/csv; charset=UTF-8',
-        ]);
+    /**
+     * "Page X of Y" at the right of the footer.
+     *
+     * CSS `counter(pages)` prints "of 0" in dompdf, because the total isn't
+     * known until layout finishes. So the page is laid out first, then this
+     * stamps every page — dompdf fills in {PAGE_NUM} and {PAGE_COUNT} itself.
+     */
+    private function stampPageNumbers(PdfDocument $pdf): void
+    {
+        $pdf->render();
+
+        $dompdf = $pdf->getDomPDF();
+        $canvas = $dompdf->getCanvas();
+        $metrics = $dompdf->getFontMetrics();
+        $font = $metrics->getFont('DejaVu Sans');
+        $size = 7.5;
+        $mm = 72 / 25.4;
+
+        // page_text can't right-align, so measure a typical label and place it
+        // against the 14mm page margin. Exact up to 9 pages; beyond that it
+        // runs a few points into the margin, still on the page.
+        $width = $metrics->getTextWidth('Page 9 of 9', $font, $size);
+
+        $canvas->page_text(
+            $canvas->get_width() - 14 * $mm - $width,
+            $canvas->get_height() - 11.1 * $mm,  // on the same line as the footer text
+            'Page {PAGE_NUM} of {PAGE_COUNT}',
+            $font,
+            $size,
+            [0.612, 0.639, 0.686],               // #9CA3AF, matching the footer
+        );
+    }
+
+    /**
+     * A plain sentence for the PDF header saying what the report covers, so a
+     * printed copy still makes sense on its own.
+     */
+    private function describeTransactionScope(array $filters): string
+    {
+        $parts = [match ($filters['range'] ?? 'today') {
+            'today' => 'Today · '.now()->format('M j, Y'),
+            'week' => 'This week · '.$this->span(now()->startOfWeek(), now()),
+            'month' => 'This month · '.now()->format('F Y'),
+            'custom' => $this->span(
+                isset($filters['from']) ? now()->parse($filters['from']) : null,
+                isset($filters['to']) ? now()->parse($filters['to']) : null,
+            ),
+            default => 'All time',
+        }];
+
+        $parts[] = match ($filters['type'] ?? 'all') {
+            'cash_in' => 'Cash in only',
+            'cash_out' => 'Cash out only',
+            default => 'All types',
+        };
+
+        if (! empty($filters['search'])) {
+            $parts[] = 'Matching "'.$filters['search'].'"';
+        }
+
+        return implode(' · ', $parts);
+    }
+
+    private function span(?CarbonInterface $from, ?CarbonInterface $to): string
+    {
+        return match (true) {
+            $from && $to => $from->format('M j').' – '.$to->format('M j, Y'),
+            (bool) $from => 'From '.$from->format('M j, Y'),
+            (bool) $to => 'Up to '.$to->format('M j, Y'),
+            default => 'All time',
+        };
     }
 
     private function applyTransactionFilters(Builder $query, array $filters): void

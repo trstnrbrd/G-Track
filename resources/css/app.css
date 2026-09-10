@@ -2,23 +2,20 @@
 @tailwind components;
 @tailwind utilities;
 
-/* ===== Global typography (shared across login + all app pages) ===== */
+/* ===== Global typography (shared across login + all app pages) =====
+   Inter comes from `fontFamily.sans` in tailwind.config.js, which
+   Tailwind's base styles apply to the whole page. Don't name a font here —
+   a second copy is how the app ended up with fonts that didn't match. */
 @layer base {
-    body {
-        font-family: "Inter", sans-serif;
-    }
     h1,
     h2,
-    h3,
-    .font-display {
-        font-family: "Inter", sans-serif;
+    h3 {
         letter-spacing: -0.02em;
     }
 }
 
 /* Solid, professional brand wordmark */
 .brand-wordmark {
-    font-family: "Inter", sans-serif;
     font-weight: 800;
     letter-spacing: -0.04em;
 }
@@ -65,7 +62,9 @@ html {
     z-index: 9999;
     background: linear-gradient(90deg, #0070ff 0%, #00c2ff 100%);
     box-shadow: 0 0 10px rgba(0, 145, 255, 0.6);
-    transition: width 0.2s ease, opacity 0.3s ease;
+    transition:
+        width 0.2s ease,
+        opacity 0.3s ease;
     pointer-events: none;
 }
 .gt-spinner {
@@ -121,4 +120,133 @@ html {
    pb-safe win and collapse the padding to 0 on non-notched devices. */
 .pb-safe-sheet {
     padding-bottom: calc(2rem + env(safe-area-inset-bottom, 0px));
+}
+
+/* ===== Dark theme =====
+   The preference is stored locally because it describes this device, not a
+   shared staff account. Keep semantic colors (GCash blue, cash green, errors)
+   intact; only neutral surfaces and text change. */
+.dark body,
+.dark .bg-gray-50 {
+    background-color: #111827;
+}
+.dark .bg-white,
+.dark [class*="bg-white/"] {
+    background-color: #1f2937;
+}
+.dark .bg-gray-100 {
+    background-color: #374151;
+}
+.dark .bg-gray-200 {
+    background-color: #4b5563;
+}
+.dark .border-gray-100,
+.dark .border-gray-200,
+.dark .border-gray-300,
+.dark .divide-gray-100 > :not([hidden]) ~ :not([hidden]) {
+    border-color: #374151;
+}
+.dark .text-gray-900,
+.dark .text-gray-800 {
+    color: #f9fafb;
+}
+.dark .text-gray-700,
+.dark .text-gray-600 {
+    color: #d1d5db;
+}
+.dark .text-gray-500,
+.dark .text-gray-400 {
+    color: #9ca3af;
+}
+.dark .hover\\:bg-gray-50:hover {
+    background-color: #374151;
+}
+.dark .hover\\:text-gray-800:hover,
+.dark .hover\\:text-gray-900:hover {
+    color: #ffffff;
+}
+.dark ::-webkit-scrollbar-thumb {
+    background-color: #6b7280;
+}
+
+/* ===== Glass balance cards =====
+   The two balance cards are the one place the app uses depth.
+
+   Real frosted glass needs something behind it to blur; on a flat page a
+   translucent card just looks washed out. So each card is its own glass: a
+   same-hue gradient for depth, a sheen, a bright rim, fine grain, and a soft
+   glow in its own colour. No decorative shapes.
+
+   The light source is the TOP-RIGHT on purpose. The label and balance sit on
+   the left, in the deeper part of the gradient, which keeps white text above
+   WCAG AA. Light from the top-left would wash the label out.
+
+   Pick the tint with .glass-gcash or .glass-cash (values from tailwind.config.js). */
+.glass-card {
+    position: relative;
+    isolation: isolate;
+    overflow: hidden;
+    background:
+        /* sheen: light catching the upper edge of the glass */
+        linear-gradient(
+            180deg,
+            rgba(255, 255, 255, 0.15) 0%,
+            rgba(255, 255, 255, 0) 45%
+        ),
+        /* depth: lightest top-right, deepest bottom-left */
+        linear-gradient(
+                225deg,
+                var(--glass-light) 0%,
+                var(--glass-base) 45%,
+                var(--glass-deep) 100%
+            );
+    box-shadow:
+        inset 0 1px 0 rgba(255, 255, 255, 0.35),
+        /* bright rim along the top */ inset 0 0 0 1px rgba(255, 255, 255, 0.1),
+        /* hairline edge all round */ 0 12px 32px -14px var(--glass-glow); /* soft glow in the card's colour */
+}
+
+/* Fine frosted grain, blended into the colour rather than sitting on top. */
+.glass-card::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    pointer-events: none;
+    opacity: 0.2;
+    mix-blend-mode: overlay;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='g'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23g)'/%3E%3C/svg%3E");
+}
+
+.glass-gcash {
+    --glass-light: #3a6dea; /* gcash-500 */
+    --glass-base: #1f5ae0; /* gcash-600 */
+    --glass-deep: #163c93; /* gcash-800 */
+    --glass-glow: rgba(31, 90, 224, 0.55);
+}
+
+.glass-cash {
+    --glass-light: #1e8c58; /* cash-500 */
+    --glass-base: #127a49; /* cash-600 */
+    --glass-deep: #0d4f31; /* cash-800 */
+    --glass-glow: rgba(18, 122, 73, 0.55);
+}
+
+/* The page background token (tailwind.config.js `canvas`) in the dark theme. */
+.dark .bg-canvas {
+    background-color: #111827;
+}
+
+/* The warm-white surface token (tailwind.config.js `surface`) in the dark theme,
+   mapped exactly like .bg-white above — including its translucent variants. */
+.dark .bg-surface,
+.dark [class*="bg-surface/"] {
+    background-color: #1f2937;
+}
+
+/* SweetAlert popups (Start day, End day, messages) on the same warm white as the
+   cards, instead of SweetAlert's own pure white. It reads its background from
+   this variable; set on the popup itself, it beats any value it would inherit. */
+.swal2-popup {
+    --swal2-background: #fbfaf7; /* tailwind.config.js `surface` */
 }

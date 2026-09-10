@@ -26,8 +26,9 @@ class DashboardTest extends TestCase
     {
         $this->actingAs($this->user)->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('Session Inactive')
-            ->assertSee('Start Day');
+            ->assertSee('Day not started')
+            ->assertSee('Start day')
+            ->assertSee('Start the day to record transactions.');
     }
 
     public function test_the_dashboard_shows_the_live_balances_and_session_totals(): void
@@ -55,10 +56,11 @@ class DashboardTest extends TestCase
 
         $this->actingAs($this->user)->get(route('dashboard'))
             ->assertOk()
-            ->assertSee('₱7,500.00')     // GCash balance
-            ->assertSee('₱2,250.00')     // cash balance
-            ->assertSee('DASH-REF-1')    // recent transactions list
-            ->assertSee('End Day');
+            ->assertSeeText('₱7,500.00')           // GCash balance (centavos in their own span)
+            ->assertSeeText('₱2,250.00')           // cash balance
+            ->assertSee('Opened at ₱8,000.00')     // opening figure under the balance
+            ->assertSee('DASH-REF-1')              // recent transactions list
+            ->assertSee('End day');
     }
 
     /**

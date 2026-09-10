@@ -70,4 +70,23 @@ return [
     */
     'auto_close_after_hours' => 16,
 
+    /*
+    |--------------------------------------------------------------------------
+    | PDF Export Row Cap
+    |--------------------------------------------------------------------------
+    |
+    | dompdf lays out every table row in PHP, and its memory grows faster than
+    | the row count. Measured on the transactions report (PHP memory_limit 512M):
+    |
+    |     50 rows  0.6s   74 MB        300 rows  3.3s  156 MB
+    |    150 rows  1.4s  102 MB        500 rows  8.6s  250 MB
+    |   1000 rows  — exhausted 512 MB and crashed
+    |
+    | 500 covers a typical week at under half the memory limit. Past it the table
+    | stops, the PDF says so, and the totals still cover every row. Re-measure
+    | before raising it.
+    |
+    */
+    'export_max_rows' => 500,
+
 ];

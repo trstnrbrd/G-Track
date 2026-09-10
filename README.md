@@ -248,7 +248,7 @@ transactions attach to yesterday — silently blending two days in every report.
 `auto_close_after_hours` in `config/gtrack.php` (default 16h).
 
 Auto-closed sessions are flagged with `auto_closed` and shown as **Auto-closed**
-(amber) on the Balance page and in the CSV export. That distinction matters: an
+(amber) on the Balance page and in the PDF export. That distinction matters: an
 auto-closed day's closing balances are what the *app believed*, not what anyone
 counted in the drawer. Never read them as a verified count.
 
@@ -272,12 +272,17 @@ Windows, create a Task Scheduler entry:
 
 Without this step nothing is scheduled — the command exists but never fires.
 
-### CSV exports
+### PDF exports
 
-**Export CSV** on History and Balance downloads exactly what the current filters
-show, not the whole table. Rows stream with `cursor()`, so a year of transactions
-won't exhaust PHP's memory limit. Files carry a UTF-8 BOM so Excel renders the
-peso sign instead of mojibake.
+**Export PDF** on History and Balance downloads a landscape A4 report of exactly
+what the current filters show, not the whole table — with totals, a repeating
+table header, and "Page X of Y" on every page. Built with `barryvdh/laravel-dompdf`
+from the Blade views in `resources/views/exports/`.
+
+dompdf is memory-hungry, so a report lists at most `export_max_rows` (500, in
+`config/gtrack.php`, where the measurements behind that number are recorded).
+Past the cap the PDF says so, and its totals still cover every row. For a longer
+period, narrow the date range.
 
 ### Counter shortcuts
 
