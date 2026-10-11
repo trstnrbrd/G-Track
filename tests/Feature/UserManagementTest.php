@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Str;
 use Tests\TestCase;
 
 class UserManagementTest extends TestCase
@@ -16,9 +17,14 @@ class UserManagementTest extends TestCase
 
     private User $staff;
 
+    /** Generated per run, so no password literal sits in the repo. */
+    private string $plain;
+
     protected function setUp(): void
     {
         parent::setUp();
+
+        $this->plain = Str::random(20);
 
         $this->owner = User::factory()->create(['name' => 'Marites Owner', 'role' => User::ROLE_OWNER]);
         $this->staff = User::factory()->create(['name' => 'Papa Staff', 'role' => User::ROLE_STAFF]);
@@ -30,7 +36,7 @@ class UserManagementTest extends TestCase
             'name' => 'Ate Cashier',
             'email' => 'cashier@example.com',
             'role' => 'admin',
-            'password' => 'counter-2026',
+            'password' => $this->plain,
         ], $overrides);
     }
 
@@ -44,14 +50,15 @@ class UserManagementTest extends TestCase
     public function test_staff_cannot_create_users_or_reset_passwords(): void
     {
         $target = User::factory()->create();
+        $attempt = Str::random(20);
 
         $this->actingAs($this->staff)->post(route('user-management.store'), $this->newUser())->assertForbidden();
         $this->actingAs($this->staff)
-            ->post(route('user-management.password', $target), ['password' => 'new-password-1'])
+            ->post(route('user-management.password', $target), ['password' => $attempt])
             ->assertForbidden();
 
         $this->assertNull(User::where('email', 'cashier@example.com')->first());
-        $this->assertFalse(Hash::check('new-password-1', $target->fresh()->password));
+        $this->assertFalse(Hash::check($attempt, $target->fresh()->password));
     }
 
     public function test_staff_cannot_open_or_write_to_the_capital_page(): void
@@ -98,11 +105,11 @@ class UserManagementTest extends TestCase
         $user = User::where('email', 'cashier@example.com')->sole();
         $this->assertSame('Ate Cashier', $user->name);
         $this->assertSame(User::ROLE_STAFF, $user->role);
-        $this->assertNotSame('counter-2026', $user->password, 'The password must be stored hashed.');
+        $this->assertNotSame($this->plain, $user->password, 'The password must be stored hashed.');
 
         // And it really works for the person it was made for.
         auth()->logout();
-        $this->post(route('login'), ['email' => 'cashier@example.com', 'password' => 'counter-2026'])
+        $this->post(route('login'), ['email' => 'cashier@example.com', 'password' => $this->plain])
             ->assertRedirect(route('dashboard', absolute: false));
         $this->assertAuthenticatedAs($user);
     }
@@ -128,7 +135,7 @@ class UserManagementTest extends TestCase
     public function test_a_short_password_or_unknown_role_is_rejected(): void
     {
         $this->actingAs($this->owner)
-            ->post(route('user-management.store'), $this->newUser(['password' => 'short']))
+            ->post(route('user-management.store'), $this->newUser(['password' => Str::random(3)]))
             ->assertSessionHasErrors('password', errorBag: 'createUser');
 
         $this->actingAs($this->owner)
@@ -142,6 +149,8 @@ class UserManagementTest extends TestCase
 
     public function test_the_owner_can_reset_a_staff_password_and_signs_them_out(): void
     {
+        $fresh = Str::random(20);
+
         DB::table('sessions')->insert([
             'id' => 'staff-phone-session',
             'user_id' => $this->staff->id,
@@ -152,11 +161,11 @@ class UserManagementTest extends TestCase
         ]);
 
         $this->actingAs($this->owner)
-            ->post(route('user-management.password', $this->staff), ['password' => 'fresh-start-9'])
+            ->post(route('user-management.password', $this->staff), ['password' => $fresh])
             ->assertRedirect()
             ->assertSessionHas('swal.icon', 'success');
 
-        $this->assertTrue(Hash::check('fresh-start-9', $this->staff->fresh()->password));
+        $this->assertTrue(Hash::check($fresh, $this->staff->fresh()->password));
         $this->assertSame(0, DB::table('sessions')->where('user_id', $this->staff->id)->count());
     }
 
@@ -165,7 +174,7 @@ class UserManagementTest extends TestCase
         $before = $this->staff->password;
 
         $this->actingAs($this->owner)
-            ->post(route('user-management.password', $this->staff), ['password' => '1234'])
+            ->post(route('user-management.password', $this->staff), ['password' => Str::random(4)])
             ->assertSessionHasErrors('password', errorBag: 'resetPassword');
 
         $this->assertSame($before, $this->staff->fresh()->password);
@@ -176,7 +185,7 @@ class UserManagementTest extends TestCase
         $before = $this->owner->password;
 
         $this->actingAs($this->owner)
-            ->post(route('user-management.password', $this->owner), ['password' => 'something-new-1'])
+            ->post(route('user-management.password', $this->owner), ['password' => Str::random(20)])
             ->assertSessionHas('swal.icon', 'info');
 
         $this->assertSame($before, $this->owner->fresh()->password);
