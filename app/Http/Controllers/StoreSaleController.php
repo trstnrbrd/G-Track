@@ -21,13 +21,14 @@ class StoreSaleController extends Controller
     {
         $session = DailySession::active();
 
-        $today = $session
-            ? StoreSale::where('daily_session_id', $session->id)
-            : null;
+        // "Today" is the calendar day, like the History page — not the open
+        // session, which would read ₱0.00 the moment End Day is pressed and
+        // make the sales look like they had vanished.
+        $today = StoreSale::query()->whereDate('created_at', today());
 
         $summary = [
-            'moved_today' => $today ? (float) (clone $today)->sum('amount') : 0.0,
-            'count_today' => $today ? (clone $today)->count() : 0,
+            'moved_today' => (float) (clone $today)->sum('amount'),
+            'count_today' => (clone $today)->count(),
             'moved_all_time' => (float) StoreSale::sum('amount'),
         ];
 

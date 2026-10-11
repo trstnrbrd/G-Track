@@ -31,7 +31,7 @@
             <div class="rounded-xl border border-gray-200 bg-surface p-5">
                 <p class="text-sm text-gray-500">Moved to the store today</p>
                 <p class="mt-1 text-2xl font-bold text-gray-900 tabular-nums">₱{{ number_format($summary['moved_today'], 2) }}</p>
-                <p class="mt-0.5 text-xs text-gray-500">{{ $summary['count_today'] }} {{ Str::plural('sale', $summary['count_today']) }} this session</p>
+                <p class="mt-0.5 text-xs text-gray-500">{{ $summary['count_today'] }} {{ Str::plural('sale', $summary['count_today']) }} today</p>
             </div>
             <div class="rounded-xl border border-gray-200 bg-surface p-5">
                 <p class="text-sm text-gray-500">Cash on hand (GCash drawer)</p>

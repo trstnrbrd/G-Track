@@ -44,7 +44,7 @@
                     <span class="text-xs font-medium text-gray-400">View only</span>
                 </div>
 
-                <div x-data="{ open: {{ $errors->updatePassword->any() || session('status') === 'password-updated' ? 'true' : 'false' }} }" class="px-5 py-4 sm:px-6">
+                <div x-data="{ open: {{ $errors->updatePassword->any() || session('status') === 'password-updated' ? 'true' : 'false' }}, visible: { current: false, new: false, confirmation: false } }" class="px-5 py-4 sm:px-6">
                     <div class="flex items-center gap-3">
                         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 00-9 0v3.75m-1.5 0h12a1.5 1.5 0 011.5 1.5v7.5A1.5 1.5 0 0116.5 21h-9A1.5 1.5 0 016 19.5V12a1.5 1.5 0 011.5-1.5z"/></svg>
@@ -66,9 +66,17 @@
 
                             <div>
                                 <label for="settings_current_password" class="block text-sm font-medium text-gray-700">Current password</label>
-                                <input id="settings_current_password" name="current_password" type="password"
-                                       autocomplete="current-password"
-                                       class="mt-1 block w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <div class="relative mt-1">
+                                    <input id="settings_current_password" name="current_password" :type="visible.current ? 'text' : 'password'"
+                                           autocomplete="current-password"
+                                           class="block w-full rounded-xl border-gray-300 pr-11 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <button type="button" @click="visible.current = !visible.current"
+                                            :aria-label="visible.current ? 'Hide current password' : 'Show current password'"
+                                            class="absolute inset-y-0 right-1 flex w-10 items-center justify-center text-gray-400 transition hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
+                                        <svg x-show="!visible.current" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.5-6 9.75-6 9.75 6 9.75 6-3.5 6-9.75 6-9.75-6-9.75-6z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        <svg x-show="visible.current" x-cloak class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.584 10.587a2 2 0 002.829 2.829M9.88 5.09A10.76 10.76 0 0112 4.875c6.25 0 9.75 7.125 9.75 7.125a17.3 17.3 0 01-2.04 2.91M6.228 6.228C3.72 7.9 2.25 12 2.25 12s3.5 7.125 9.75 7.125a10.8 10.8 0 004.09-.8"/></svg>
+                                    </button>
+                                </div>
                                 @if ($errors->updatePassword->has('current_password'))
                                     <p class="mt-1 text-sm text-red-600">{{ $errors->updatePassword->first('current_password') }}</p>
                                 @endif
@@ -76,9 +84,17 @@
 
                             <div>
                                 <label for="settings_password" class="block text-sm font-medium text-gray-700">New password</label>
-                                <input id="settings_password" name="password" type="password"
-                                       autocomplete="new-password"
-                                       class="mt-1 block w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <div class="relative mt-1">
+                                    <input id="settings_password" name="password" :type="visible.new ? 'text' : 'password'"
+                                           autocomplete="new-password"
+                                           class="block w-full rounded-xl border-gray-300 pr-11 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <button type="button" @click="visible.new = !visible.new"
+                                            :aria-label="visible.new ? 'Hide new password' : 'Show new password'"
+                                            class="absolute inset-y-0 right-1 flex w-10 items-center justify-center text-gray-400 transition hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
+                                        <svg x-show="!visible.new" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.5-6 9.75-6 9.75 6 9.75 6-3.5 6-9.75 6-9.75-6-9.75-6z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        <svg x-show="visible.new" x-cloak class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.584 10.587a2 2 0 002.829 2.829M9.88 5.09A10.76 10.76 0 0112 4.875c6.25 0 9.75 7.125 9.75 7.125a17.3 17.3 0 01-2.04 2.91M6.228 6.228C3.72 7.9 2.25 12 2.25 12s3.5 7.125 9.75 7.125a10.8 10.8 0 004.09-.8"/></svg>
+                                    </button>
+                                </div>
                                 @if ($errors->updatePassword->has('password'))
                                     <p class="mt-1 text-sm text-red-600">{{ $errors->updatePassword->first('password') }}</p>
                                 @endif
@@ -86,9 +102,17 @@
 
                             <div>
                                 <label for="settings_password_confirmation" class="block text-sm font-medium text-gray-700">Confirm new password</label>
-                                <input id="settings_password_confirmation" name="password_confirmation" type="password"
-                                       autocomplete="new-password"
-                                       class="mt-1 block w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                <div class="relative mt-1">
+                                    <input id="settings_password_confirmation" name="password_confirmation" :type="visible.confirmation ? 'text' : 'password'"
+                                           autocomplete="new-password"
+                                           class="block w-full rounded-xl border-gray-300 pr-11 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                    <button type="button" @click="visible.confirmation = !visible.confirmation"
+                                            :aria-label="visible.confirmation ? 'Hide password confirmation' : 'Show password confirmation'"
+                                            class="absolute inset-y-0 right-1 flex w-10 items-center justify-center text-gray-400 transition hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
+                                        <svg x-show="!visible.confirmation" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.5-6 9.75-6 9.75 6 9.75 6-3.5 6-9.75 6-9.75-6-9.75-6z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
+                                        <svg x-show="visible.confirmation" x-cloak class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.584 10.587a2 2 0 002.829 2.829M9.88 5.09A10.76 10.76 0 0112 4.875c6.25 0 9.75 7.125 9.75 7.125a17.3 17.3 0 01-2.04 2.91M6.228 6.228C3.72 7.9 2.25 12 2.25 12s3.5 7.125 9.75 7.125a10.8 10.8 0 004.09-.8"/></svg>
+                                    </button>
+                                </div>
                                 @if ($errors->updatePassword->has('password_confirmation'))
                                     <p class="mt-1 text-sm text-red-600">{{ $errors->updatePassword->first('password_confirmation') }}</p>
                                 @endif

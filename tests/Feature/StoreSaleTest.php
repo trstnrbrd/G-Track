@@ -204,6 +204,47 @@ class StoreSaleTest extends TestCase
             ->assertSee('Start the day on the Dashboard first.');
     }
 
+    public function test_the_list_is_paginated_and_nothing_is_lost_between_pages(): void
+    {
+        $session = $this->openDay();
+
+        foreach (range(1, 25) as $n) {
+            StoreSale::create([
+                'daily_session_id' => $session->id,
+                'user_id' => $this->user->id,
+                'amount' => $n,
+            ]);
+        }
+
+        $this->actingAs($this->user)->get(route('store'))
+            ->assertOk()
+            ->assertViewHas('sales', fn ($sales) => $sales->total() === 25
+                && $sales->perPage() === 20
+                && count($sales->items()) === 20)
+            ->assertSee('page=2');
+
+        $this->actingAs($this->user)->get(route('store', ['page' => 2]))
+            ->assertViewHas('sales', fn ($sales) => count($sales->items()) === 5);
+    }
+
+    public function test_sales_and_todays_total_survive_ending_the_day(): void
+    {
+        $this->openDay(gcash: 1000, cash: 1000);
+        $this->sell(['amount' => 500, 'note' => '1 sack rice']);
+
+        $this->actingAs($this->user)->post(route('day.end'))->assertRedirect();
+
+        // No day is open now, but the sale and today's figure are still there.
+        $this->actingAs($this->user)->get(route('store'))
+            ->assertOk()
+            ->assertSee('1 sack rice')
+            ->assertViewHas('summary', fn (array $s) => $s['moved_today'] === 500.0
+                && $s['count_today'] === 1
+                && $s['moved_all_time'] === 500.0);
+
+        $this->assertSame(1, StoreSale::count());
+    }
+
     public function test_guests_cannot_see_or_record_store_sales(): void
     {
         $this->get(route('store'))->assertRedirect(route('login'));

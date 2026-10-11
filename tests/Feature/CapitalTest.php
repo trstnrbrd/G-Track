@@ -20,7 +20,8 @@ class CapitalTest extends TestCase
     {
         parent::setUp();
 
-        $this->user = User::factory()->create();
+        // The Capital page and its entries are owner-only.
+        $this->user = User::factory()->create(['role' => User::ROLE_OWNER]);
     }
 
     private function openDay(float $gcash = 50000, float $cash = 40000): DailySession
@@ -216,6 +217,50 @@ class CapitalTest extends TestCase
                 && $s['utang'] === 30000.0
                 && $s['expected'] === 45000.0)
             ->assertSee('₱45,000.00');
+    }
+
+    public function test_the_ledger_is_paginated_and_nothing_is_lost_between_pages(): void
+    {
+        foreach (range(1, 25) as $n) {
+            CapitalEntry::create([
+                'user_id' => $this->user->id,
+                'kind' => CapitalEntry::KIND_CAPITAL,
+                'amount' => $n,
+            ]);
+        }
+
+        $this->actingAs($this->user)->get(route('capital'))
+            ->assertOk()
+            ->assertViewHas('entries', fn ($entries) => $entries->total() === 25
+                && $entries->perPage() === 20
+                && count($entries->items()) === 20)
+            ->assertSee('page=2');
+
+        $this->actingAs($this->user)->get(route('capital', ['page' => 2]))
+            ->assertViewHas('entries', fn ($entries) => count($entries->items()) === 5);
+    }
+
+    /**
+     * Ending the day and starting the next one must leave the ledger and the
+     * figures exactly as they were — it isn't a daily thing.
+     */
+    public function test_the_ledger_and_figures_survive_ending_and_starting_a_day(): void
+    {
+        $this->openDay(gcash: 50000, cash: 40000);
+        $this->withPuhunan(75000);
+        $this->entry('borrow', 30000, 'cash', ['purpose' => 'grocery']);
+
+        $this->actingAs($this->user)->post(route('day.end'))->assertRedirect();
+        $this->actingAs($this->user)->post(route('day.start'), ['starting_gcash' => 50000, 'starting_cash' => 10000])->assertRedirect();
+
+        $this->assertSame(2, CapitalEntry::count());
+        $this->assertEquals(75000.00, CapitalEntry::puhunan());
+        $this->assertEquals(30000.00, CapitalEntry::utang());
+
+        $this->actingAs($this->user)->get(route('capital'))
+            ->assertOk()
+            ->assertViewHas('summary', fn (array $s) => $s['expected'] === 45000.0)
+            ->assertSee('Grocery');
     }
 
     public function test_guests_cannot_see_or_record_anything(): void
