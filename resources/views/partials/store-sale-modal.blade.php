@@ -89,7 +89,7 @@
                         <span class="font-bold tabular-nums whitespace-nowrap text-green-600" x-text="'+' + peso(amount)"></span>
                     </div>
                     <div class="flex items-center justify-between gap-3">
-                        <span class="text-gray-600">Cash to the tindahan</span>
+                        <span class="text-gray-600">Cash to the store</span>
                         <span class="font-bold tabular-nums whitespace-nowrap text-red-600" x-text="'−' + peso(amount)"></span>
                     </div>
                     <p class="pt-1.5 border-t border-gray-200 text-xs text-gray-500">No service charge — this is a store sale, not a GCash service.</p>

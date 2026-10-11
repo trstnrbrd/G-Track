@@ -44,15 +44,67 @@
                     <span class="text-xs font-medium text-gray-400">View only</span>
                 </div>
 
-                <div class="flex items-center gap-3 px-5 py-4 sm:px-6">
-                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 00-9 0v3.75m-1.5 0h12a1.5 1.5 0 011.5 1.5v7.5A1.5 1.5 0 0116.5 21h-9A1.5 1.5 0 016 19.5V12a1.5 1.5 0 011.5-1.5z"/></svg>
+                <div x-data="{ open: {{ $errors->updatePassword->any() || session('status') === 'password-updated' ? 'true' : 'false' }} }" class="px-5 py-4 sm:px-6">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 00-9 0v3.75m-1.5 0h12a1.5 1.5 0 011.5 1.5v7.5A1.5 1.5 0 0116.5 21h-9A1.5 1.5 0 016 19.5V12a1.5 1.5 0 011.5-1.5z"/></svg>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-medium text-gray-800">Password</p>
+                            <p class="mt-0.5 text-sm text-gray-500">Keep your account secure with a strong password.</p>
+                        </div>
+                        <button type="button" @click="open = !open" :aria-expanded="open"
+                                class="shrink-0 rounded-lg px-3 py-2 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            <span x-text="open ? 'Cancel' : 'Change'"></span>
+                        </button>
                     </div>
-                    <div class="flex-1">
-                        <p class="text-sm font-medium text-gray-800">Password</p>
-                        <p class="mt-0.5 text-sm text-gray-500">Keep your account secure with a strong password.</p>
+
+                    <div x-cloak x-show="open" x-transition class="mt-4 border-t border-gray-100 pt-4">
+                        <form method="post" action="{{ route('password.update') }}" class="space-y-4">
+                            @csrf
+                            @method('put')
+
+                            <div>
+                                <label for="settings_current_password" class="block text-sm font-medium text-gray-700">Current password</label>
+                                <input id="settings_current_password" name="current_password" type="password"
+                                       autocomplete="current-password"
+                                       class="mt-1 block w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @if ($errors->updatePassword->has('current_password'))
+                                    <p class="mt-1 text-sm text-red-600">{{ $errors->updatePassword->first('current_password') }}</p>
+                                @endif
+                            </div>
+
+                            <div>
+                                <label for="settings_password" class="block text-sm font-medium text-gray-700">New password</label>
+                                <input id="settings_password" name="password" type="password"
+                                       autocomplete="new-password"
+                                       class="mt-1 block w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @if ($errors->updatePassword->has('password'))
+                                    <p class="mt-1 text-sm text-red-600">{{ $errors->updatePassword->first('password') }}</p>
+                                @endif
+                            </div>
+
+                            <div>
+                                <label for="settings_password_confirmation" class="block text-sm font-medium text-gray-700">Confirm new password</label>
+                                <input id="settings_password_confirmation" name="password_confirmation" type="password"
+                                       autocomplete="new-password"
+                                       class="mt-1 block w-full rounded-xl border-gray-300 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
+                                @if ($errors->updatePassword->has('password_confirmation'))
+                                    <p class="mt-1 text-sm text-red-600">{{ $errors->updatePassword->first('password_confirmation') }}</p>
+                                @endif
+                            </div>
+
+                            <div class="flex items-center gap-3">
+                                <button type="submit"
+                                        class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                    Update password
+                                </button>
+                                @if (session('status') === 'password-updated')
+                                    <p class="text-sm font-medium text-green-600">Password updated.</p>
+                                @endif
+                            </div>
+                        </form>
                     </div>
-                    <span class="text-xs font-medium text-gray-400">Coming soon</span>
                 </div>
             </div>
         </section>

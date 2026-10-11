@@ -71,7 +71,7 @@ class StoreSaleController extends Controller
                 // The GCash side only goes up; the drawer is what can run short.
                 if (! $balance->canAbsorb($deltas)) {
                     throw new \DomainException(sprintf(
-                        'Not enough cash on hand to move to the tindahan. You need ₱%s but the drawer only has ₱%s.',
+                        'Not enough cash on hand to move to the store. You need ₱%s but the drawer only has ₱%s.',
                         number_format($amount, 2),
                         number_format((float) $balance->cash_balance, 2),
                     ));
@@ -109,8 +109,8 @@ class StoreSaleController extends Controller
 
         return back()->with('swal', [
             'icon' => 'success',
-            'title' => 'Moved to tindahan',
-            'text' => "GCash +{$peso}, cash on hand −{$peso}. Take {$peso} from the GCash drawer and put it in the tindahan.",
+            'title' => 'Moved to the store',
+            'text' => "GCash +{$peso}, cash on hand −{$peso}. Take {$peso} from the GCash drawer and put it in the store.",
         ]);
     }
 }

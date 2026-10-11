@@ -11,6 +11,19 @@ class PasswordUpdateTest extends TestCase
 {
     use RefreshDatabase;
 
+    public function test_settings_page_shows_password_change_form(): void
+    {
+        $user = User::factory()->create(['email_verified_at' => now()]);
+
+        $this
+            ->actingAs($user)
+            ->get('/settings')
+            ->assertOk()
+            ->assertSee('Change')
+            ->assertSee('Update password')
+            ->assertSee('action="'.route('password.update').'"', false);
+    }
+
     public function test_password_can_be_updated(): void
     {
         $user = User::factory()->create();

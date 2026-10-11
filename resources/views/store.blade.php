@@ -13,7 +13,7 @@
                 <h2 class="text-gray-900 text-lg font-bold">Items paid via GCash</h2>
                 <p class="text-sm text-gray-600 mt-1 max-w-xl">
                     When a customer pays for a store item with GCash, record it here. The money lands in the wallet,
-                    so the same amount of cash moves from the GCash drawer to the tindahan.
+                    so the same amount of cash moves from the GCash drawer to the store.
                 </p>
             </div>
             <div class="text-right shrink-0">
@@ -29,7 +29,7 @@
 
         <div class="grid grid-cols-3 gap-4 mb-6">
             <div class="rounded-xl border border-gray-200 bg-surface p-5">
-                <p class="text-sm text-gray-500">Moved to tindahan today</p>
+                <p class="text-sm text-gray-500">Moved to the store today</p>
                 <p class="mt-1 text-2xl font-bold text-gray-900 tabular-nums">₱{{ number_format($summary['moved_today'], 2) }}</p>
                 <p class="mt-0.5 text-xs text-gray-500">{{ $summary['count_today'] }} {{ Str::plural('sale', $summary['count_today']) }} this session</p>
             </div>
@@ -42,7 +42,7 @@
                 <p class="mt-0.5 text-xs text-gray-500">The most you can move right now</p>
             </div>
             <div class="rounded-xl border border-gray-200 bg-surface p-5">
-                <p class="text-sm text-gray-500">Moved to tindahan, all time</p>
+                <p class="text-sm text-gray-500">Moved to the store, all time</p>
                 <p class="mt-1 text-2xl font-bold text-gray-900 tabular-nums">₱{{ number_format($summary['moved_all_time'], 2) }}</p>
             </div>
         </div>
@@ -97,7 +97,7 @@
     <div class="lg:hidden max-w-md mx-auto min-h-screen bg-canvas px-5 py-6 pb-safe-nav">
 
         <p class="text-sm text-gray-600 mb-4">
-            Customer paid for an item with GCash? Record it here — the same amount of cash moves from the GCash drawer to the tindahan.
+            Customer paid for an item with GCash? Record it here — the same amount of cash moves from the GCash drawer to the store.
         </p>
 
         <button type="button" onclick="gtrackOpenStoreSale()" @disabled(! $session)
@@ -110,7 +110,7 @@
 
         <div class="grid grid-cols-2 gap-3 mt-5">
             <div class="rounded-xl border border-gray-200 bg-surface p-4">
-                <p class="text-xs text-gray-500">Moved to tindahan today</p>
+                <p class="text-xs text-gray-500">Moved to the store today</p>
                 <p class="mt-1 text-lg font-bold text-gray-900 tabular-nums">₱{{ number_format($summary['moved_today'], 2) }}</p>
                 <p class="text-[11px] text-gray-500">{{ $summary['count_today'] }} {{ Str::plural('sale', $summary['count_today']) }}</p>
             </div>
@@ -122,7 +122,7 @@
                 <p class="text-[11px] text-gray-500">Most you can move</p>
             </div>
         </div>
-        <p class="mt-2 text-xs text-gray-600">All time: ₱{{ number_format($summary['moved_all_time'], 2) }} moved to the tindahan</p>
+        <p class="mt-2 text-xs text-gray-600">All time: ₱{{ number_format($summary['moved_all_time'], 2) }} moved to the store</p>
 
         <h2 class="text-gray-800 text-base font-bold mt-6 mb-3">Store sales</h2>
 
