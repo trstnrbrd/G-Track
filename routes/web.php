@@ -1,11 +1,13 @@
 <?php
 
 use App\Http\Controllers\BalanceController;
+use App\Http\Controllers\CapitalController;
 use App\Http\Controllers\DailySessionController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StoreSaleController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +27,14 @@ Route::get('/balance', [BalanceController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('balance');
 
+Route::get('/store', [StoreSaleController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('store');
+
+Route::get('/capital', [CapitalController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('capital');
+
 Route::get('/user-management', function () {
     return view('user-management');
 })->middleware(['auth', 'verified'])->name('user-management');
@@ -40,6 +50,15 @@ Route::middleware('auth')->group(function () {
 
     // Recording a cash in / cash out
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
+
+    // Fill in / correct the number and reference after the fact (money fields are locked)
+    Route::patch('/transactions/{transaction}', [TransactionController::class, 'update'])->name('transactions.update');
+
+    // A store item paid via GCash: cash moves from the GCash drawer to the tindahan
+    Route::post('/store/sales', [StoreSaleController::class, 'store'])->name('store.sales.store');
+
+    // Capital (puhunan) / debt (utang) ledger: borrow, repay, add capital
+    Route::post('/capital/entries', [CapitalController::class, 'store'])->name('capital.entries.store');
 
     // CSV exports (respect whatever filters the page currently has applied)
     Route::get('/export/transactions', [ExportController::class, 'transactions'])->name('export.transactions');

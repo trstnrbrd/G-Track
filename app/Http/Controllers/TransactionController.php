@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Http\Requests\StoreTransactionRequest;
+use App\Http\Requests\UpdateTransactionRequest;
 use App\Models\Balance;
 use App\Models\DailySession;
 use App\Models\Transaction;
@@ -89,6 +90,38 @@ class TransactionController extends Controller
             'icon' => 'success',
             'title' => $transaction->isCashIn() ? 'Cash In recorded' : 'Cash Out recorded',
             'text' => $this->receiptLine($transaction, $deltas),
+        ]);
+    }
+
+    /**
+     * Fill in or correct the customer's number and the reference on a
+     * transaction that is already recorded.
+     *
+     * This never touches money: the request only accepts those two fields, so
+     * the balances and the day's totals are exactly as they were.
+     */
+    public function update(UpdateTransactionRequest $request, Transaction $transaction): RedirectResponse
+    {
+        try {
+            $transaction->update($request->validated());
+        } catch (UniqueConstraintViolationException) {
+            // Same race as store(): the form check passed, the index didn't.
+            return back()
+                ->withInput()
+                ->withErrors(
+                    ['reference_number' => 'This reference number is already recorded — that transaction has been logged before.'],
+                    'editTransaction',
+                );
+        }
+
+        return back()->with('swal', [
+            'toast' => true,
+            'position' => 'top',
+            'icon' => 'success',
+            'title' => 'Details saved',
+            'showConfirmButton' => false,
+            'timer' => 2200,
+            'timerProgressBar' => true,
         ]);
     }
 

@@ -200,6 +200,7 @@
     </div>
 
     @include('partials.transaction-modal')
+    @include('partials.edit-transaction-modal')
 
     {{-- ===== Dashboard interactions (SweetAlert2) ===== --}}
     <script>
