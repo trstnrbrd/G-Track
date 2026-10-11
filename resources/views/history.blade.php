@@ -110,6 +110,7 @@
                                 <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Fee</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reference</th>
                                 <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Recorded By</th>
+                                <th class="px-6 py-3"><span class="sr-only">Edit</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
@@ -132,6 +133,9 @@
                                     </td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{{ $txn->reference_number ?: '—' }}</td>
                                     <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $txn->user?->name ?? '—' }}</td>
+                                    <td class="px-6 py-2 whitespace-nowrap text-right">
+                                        <x-edit-transaction-button :transaction="$txn" />
+                                    </td>
                                 </tr>
                             @endforeach
                         </tbody>
@@ -202,6 +206,9 @@
                         <p class="text-[11px] text-gray-400 mt-0.5">{{ $txn->created_at->format('M j, g:i A') }}</p>
                     </div>
                 </div>
+                <div class="mt-3 pt-2 border-t border-gray-100 flex justify-end">
+                    <x-edit-transaction-button :transaction="$txn" label />
+                </div>
             </div>
         @empty
             <div class="bg-surface rounded-2xl shadow-sm p-8 text-center text-gray-400">
@@ -217,5 +224,7 @@
             <div class="mt-4">{{ $transactions->links() }}</div>
         @endif
     </div>
+
+    @include('partials.edit-transaction-modal')
 
 </x-app-layout>

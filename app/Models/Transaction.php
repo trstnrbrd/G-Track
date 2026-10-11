@@ -98,6 +98,27 @@ class Transaction extends Model
         );
     }
 
+    /**
+     * What the edit modal needs to describe this row and post the change.
+     * The amount is here for display only — it can't be edited.
+     *
+     * The URL is relative so it works whether the app is opened as localhost,
+     * 127.0.0.1 or the PC's address on the shop Wi-Fi.
+     *
+     * @return array{id: int, url: string, type: string, amount: string, mobile: ?string, reference: ?string}
+     */
+    public function editPayload(): array
+    {
+        return [
+            'id' => $this->id,
+            'url' => route('transactions.update', $this, absolute: false),
+            'type' => $this->type,
+            'amount' => '₱'.number_format((float) $this->amount, 2),
+            'mobile' => $this->mobile_number,
+            'reference' => $this->reference_number,
+        ];
+    }
+
     public function isCashIn(): bool
     {
         return $this->type === self::TYPE_CASH_IN;

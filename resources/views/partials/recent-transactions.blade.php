@@ -28,9 +28,13 @@
                 </p>
             </div>
         </div>
-        <div class="text-right shrink-0">
-            <p class="text-sm font-semibold text-gray-900 tabular-nums">₱{{ number_format($txn->amount, 2) }}</p>
-            <p class="text-xs text-gray-500 tabular-nums">{{ $txn->created_at->format('g:i A') }}</p>
+        <div class="flex items-center gap-1 shrink-0">
+            <div class="text-right">
+                <p class="text-sm font-semibold text-gray-900 tabular-nums">₱{{ number_format($txn->amount, 2) }}</p>
+                <p class="text-xs text-gray-500 tabular-nums">{{ $txn->created_at->format('g:i A') }}</p>
+            </div>
+            {{-- Add the reference / number after the fact (the modal is on the Dashboard page). --}}
+            <x-edit-transaction-button :transaction="$txn" class="-mr-2" />
         </div>
     </div>
 @empty

@@ -41,6 +41,9 @@ Route::middleware('auth')->group(function () {
     // Recording a cash in / cash out
     Route::post('/transactions', [TransactionController::class, 'store'])->name('transactions.store');
 
+    // Fill in / correct the number and reference after the fact (money fields are locked)
+    Route::patch('/transactions/{transaction}', [TransactionController::class, 'update'])->name('transactions.update');
+
     // CSV exports (respect whatever filters the page currently has applied)
     Route::get('/export/transactions', [ExportController::class, 'transactions'])->name('export.transactions');
     Route::get('/export/sessions', [ExportController::class, 'sessions'])->name('export.sessions');
