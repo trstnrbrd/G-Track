@@ -52,6 +52,7 @@ class UpdateTransactionRequest extends FormRequest
                 // One GCash reference = one real transfer. Keeping its own
                 // reference is fine; borrowing another row's is not.
                 Rule::unique('transactions', 'reference_number')->ignore($transaction->id),
+                Rule::unique('store_sales', 'reference_number'),
             ],
         ];
     }

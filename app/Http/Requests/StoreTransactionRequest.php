@@ -49,6 +49,8 @@ class StoreTransactionRequest extends FormRequest
                 // One GCash reference = one real transfer. Recording it twice
                 // would move the balances twice for money that moved once.
                 Rule::unique('transactions', 'reference_number'),
+                // ...including one already logged as a store item paid via GCash.
+                Rule::unique('store_sales', 'reference_number'),
             ],
         ];
     }

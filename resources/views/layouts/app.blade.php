@@ -74,6 +74,8 @@
                  'icon' => 'M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z'],
                 ['label' => 'Balance',        'url' => route('balance'), 'active' => request()->routeIs('balance'),
                  'icon' => 'M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3M3.75 6h16.5a1.5 1.5 0 011.5 1.5v9a1.5 1.5 0 01-1.5 1.5H3.75a1.5 1.5 0 01-1.5-1.5v-9A1.5 1.5 0 013.75 6z'],
+                ['label' => 'Store',          'url' => route('store'), 'active' => request()->routeIs('store'),
+                 'icon' => 'M15.75 10.5V6a3.75 3.75 0 10-7.5 0v4.5m11.356-1.993l1.263 12c.07.665-.45 1.243-1.119 1.243H4.25a1.125 1.125 0 01-1.12-1.243l1.264-12A1.125 1.125 0 015.513 7.5h12.974c.576 0 1.059.435 1.119 1.007zM8.625 10.5a.375.375 0 11-.75 0 .375.375 0 01.75 0zm7.5 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z'],
             ];
             if (Auth::user()->isSuperAdmin()) {
                 $nav[] = ['label' => 'User Management', 'url' => route('user-management'), 'active' => request()->routeIs('user-management'),

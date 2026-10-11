@@ -6,6 +6,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\StoreSaleController;
 use App\Http\Controllers\TransactionController;
 use Illuminate\Support\Facades\Route;
 
@@ -25,6 +26,10 @@ Route::get('/balance', [BalanceController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('balance');
 
+Route::get('/store', [StoreSaleController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('store');
+
 Route::get('/user-management', function () {
     return view('user-management');
 })->middleware(['auth', 'verified'])->name('user-management');
@@ -43,6 +48,9 @@ Route::middleware('auth')->group(function () {
 
     // Fill in / correct the number and reference after the fact (money fields are locked)
     Route::patch('/transactions/{transaction}', [TransactionController::class, 'update'])->name('transactions.update');
+
+    // A store item paid via GCash: cash moves from the GCash drawer to the tindahan
+    Route::post('/store/sales', [StoreSaleController::class, 'store'])->name('store.sales.store');
 
     // CSV exports (respect whatever filters the page currently has applied)
     Route::get('/export/transactions', [ExportController::class, 'transactions'])->name('export.transactions');
