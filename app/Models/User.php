@@ -25,17 +25,23 @@ class User extends Authenticatable
         'role',
     ];
 
+    /** The shop owner (Marites): manages accounts, sees the Capital page. */
+    public const ROLE_OWNER = 'super_admin';
+
+    /** Counter staff. */
+    public const ROLE_STAFF = 'admin';
+
     /**
      * Role helpers.
      */
     public function isSuperAdmin(): bool
     {
-        return $this->role === 'super_admin';
+        return $this->role === self::ROLE_OWNER;
     }
 
     public function isAdmin(): bool
     {
-        return $this->role === 'admin';
+        return $this->role === self::ROLE_STAFF;
     }
 
     /**

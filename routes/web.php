@@ -9,6 +9,7 @@ use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\StoreSaleController;
 use App\Http\Controllers\TransactionController;
+use App\Http\Controllers\UserManagementController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -31,13 +32,14 @@ Route::get('/store', [StoreSaleController::class, 'index'])
     ->middleware(['auth', 'verified'])
     ->name('store');
 
-Route::get('/capital', [CapitalController::class, 'index'])
-    ->middleware(['auth', 'verified'])
-    ->name('capital');
+// Owner-only: hiding the nav link isn't access control, the `owner` middleware is.
+Route::middleware(['auth', 'verified', 'owner'])->group(function () {
+    Route::get('/capital', [CapitalController::class, 'index'])->name('capital');
 
-Route::get('/user-management', function () {
-    return view('user-management');
-})->middleware(['auth', 'verified'])->name('user-management');
+    Route::get('/user-management', [UserManagementController::class, 'index'])->name('user-management');
+    Route::post('/user-management', [UserManagementController::class, 'store'])->name('user-management.store');
+    Route::post('/user-management/{user}/password', [UserManagementController::class, 'resetPassword'])->name('user-management.password');
+});
 
 Route::get('/settings', function () {
     return view('settings');
@@ -58,7 +60,7 @@ Route::middleware('auth')->group(function () {
     Route::post('/store/sales', [StoreSaleController::class, 'store'])->name('store.sales.store');
 
     // Capital (puhunan) / debt (utang) ledger: borrow, repay, add capital
-    Route::post('/capital/entries', [CapitalController::class, 'store'])->name('capital.entries.store');
+    Route::post('/capital/entries', [CapitalController::class, 'store'])->middleware('owner')->name('capital.entries.store');
 
     // CSV exports (respect whatever filters the page currently has applied)
     Route::get('/export/transactions', [ExportController::class, 'transactions'])->name('export.transactions');
