@@ -1,8 +1,12 @@
 import './bootstrap';
 
 import Alpine from 'alpinejs';
+import { passwordStrength } from './password-strength';
 
 window.Alpine = Alpine;
+
+// Used by <x-password-strength> in Alpine expressions.
+window.gtrackPasswordStrength = passwordStrength;
 
 Alpine.start();
 

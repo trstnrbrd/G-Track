@@ -3,9 +3,13 @@
 namespace Tests\Feature;
 
 use App\Models\User;
+use App\Notifications\AccountCreated;
+use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Hash;
+use Illuminate\Support\Facades\Notification;
+use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
 use Tests\TestCase;
 
@@ -213,6 +217,198 @@ class UserManagementTest extends TestCase
                 && $users->perPage() === 20
                 && count($users->items()) === 20)
             ->assertSee('page=2');
+    }
+
+    // ---- the welcome email -------------------------------------------------------
+
+    public function test_creating_an_account_emails_the_new_user_a_set_password_link(): void
+    {
+        Notification::fake();
+
+        $this->actingAs($this->owner)
+            ->post(route('user-management.store'), $this->newUser(['send_email' => '1']))
+            ->assertSessionHas('swal.icon', 'success');
+
+        $user = User::where('email', 'cashier@example.com')->sole();
+
+        Notification::assertSentTo($user, AccountCreated::class);
+        Notification::assertSentToTimes($user, AccountCreated::class, 1);
+    }
+
+    public function test_no_email_is_sent_unless_asked_for(): void
+    {
+        Notification::fake();
+
+        $this->actingAs($this->owner)
+            ->post(route('user-management.store'), $this->newUser())
+            ->assertSessionHas('swal.icon', 'success');
+
+        Notification::assertNothingSent();
+    }
+
+    public function test_the_email_has_a_working_link_and_never_the_password(): void
+    {
+        Notification::fake();
+
+        $this->actingAs($this->owner)
+            ->post(route('user-management.store'), $this->newUser(['send_email' => '1']));
+
+        $user = User::where('email', 'cashier@example.com')->sole();
+        $mail = null;
+
+        Notification::assertSentTo($user, AccountCreated::class, function (AccountCreated $notification) use ($user, &$mail) {
+            $mail = $notification->toMail($user);
+
+            return true;
+        });
+
+        $html = (string) $mail->render();
+        $this->assertStringContainsString('Hi Ate Cashier,', $html);
+        $this->assertStringContainsString('Marites Owner made you an account', $html);
+        $this->assertStringContainsString('Set your password', $html);
+        $this->assertStringContainsString('reset-password/', $html);
+        $this->assertStringContainsString('alt="'.config('app.name').'"', $html, 'The logo sits at the top.');
+        $this->assertStringNotContainsString($this->plain, $html, 'The email must never contain the password.');
+        $this->assertStringNotContainsString('Regards', $html);
+        $this->assertStringNotContainsString('All rights reserved', $html);
+
+        // The link really works: follow it and choose a password.
+        $url = $mail->viewData['actionUrl'];
+        $this->assertStringStartsWith('http', $url);
+        $token = basename(parse_url($url, PHP_URL_PATH));
+        $chosen = Str::random(20);
+
+        auth()->logout();
+        $this->post(route('password.store'), [
+            'token' => $token,
+            'email' => 'cashier@example.com',
+            'password' => $chosen,
+            'password_confirmation' => $chosen,
+        ])->assertSessionHasNoErrors()->assertRedirect(route('login'));
+
+        $this->assertTrue(Hash::check($chosen, $user->fresh()->password));
+    }
+
+    /**
+     * The reported bug: the owner makes the account, is still signed in on this
+     * browser, clicks the emailed link — and got the dashboard, not the page.
+     */
+    public function test_the_set_password_link_opens_even_while_the_owner_is_signed_in(): void
+    {
+        $newbie = User::factory()->create(['email' => 'newbie@example.com', 'role' => User::ROLE_STAFF]);
+        $token = Password::broker()->createToken($newbie);
+
+        $this->actingAs($this->owner)
+            ->get(route('password.reset', ['token' => $token, 'email' => 'newbie@example.com']))
+            ->assertOk()
+            ->assertSee('name="password"', false)
+            ->assertSee('newbie@example.com');
+
+        $this->assertGuest();
+    }
+
+    public function test_the_set_password_page_has_the_eye_the_strength_bar_and_a_confirm_field(): void
+    {
+        $this->get(route('password.reset', ['token' => 'tok', 'email' => 'newbie@example.com']))
+            ->assertOk()
+            ->assertSee('Set your password')
+            ->assertSee('name="password"', false)
+            ->assertSee('name="password_confirmation"', false)
+            ->assertSee('aria-label', false)          // the show/hide eye buttons
+            ->assertSee('gtrackPasswordStrength', false) // the weak → strong bar
+            ->assertSee('Passwords match');
+    }
+
+    public function test_setting_the_password_works_from_a_browser_the_owner_is_signed_in_on(): void
+    {
+        $newbie = User::factory()->create(['email' => 'newbie@example.com', 'role' => User::ROLE_STAFF]);
+        $token = Password::broker()->createToken($newbie);
+        $chosen = Str::random(20);
+
+        $this->actingAs($this->owner)->post(route('password.store'), [
+            'token' => $token,
+            'email' => 'newbie@example.com',
+            'password' => $chosen,
+            'password_confirmation' => $chosen,
+        ])->assertSessionHasNoErrors()->assertRedirect(route('login'));
+
+        $this->assertTrue(Hash::check($chosen, $newbie->fresh()->password));
+        $this->assertGuest();
+    }
+
+    /**
+     * The reported inconsistency: the forgot-password email came out in
+     * Laravel's stock black-button template while the welcome email was
+     * branded. Both must have the same look.
+     */
+    public function test_the_forgot_password_email_has_the_same_branded_look(): void
+    {
+        Notification::fake();
+
+        $this->post(route('password.email'), ['email' => $this->staff->email])->assertSessionHasNoErrors();
+
+        $mail = null;
+        Notification::assertSentTo($this->staff, ResetPassword::class, function ($notification) use (&$mail) {
+            $mail = $notification->toMail($this->staff);
+
+            return true;
+        });
+
+        $html = (string) $mail->render();
+
+        // Same branded frame as the welcome email.
+        $this->assertStringContainsString('Hi Papa Staff,', $html);
+        $this->assertStringContainsString('alt="'.config('app.name').'"', $html);
+        $this->assertStringContainsString('background:#1F5AE0', $html, 'The button is the app blue, not Laravel black.');
+        $this->assertStringContainsString('Reset password', $html);
+        $this->assertStringContainsString('reset-password/', $html);
+
+        // None of the stock template's furniture.
+        $this->assertStringNotContainsString('Hello!', $html);
+        $this->assertStringNotContainsString('Regards', $html);
+        $this->assertStringNotContainsString('All rights reserved', $html);
+        $this->assertStringNotContainsString('having trouble clicking', $html);
+
+        // And its link is the real one: it sets the password.
+        $url = $mail->viewData['actionUrl'];
+        $token = basename(parse_url($url, PHP_URL_PATH));
+        $chosen = Str::random(20);
+
+        $this->post(route('password.store'), [
+            'token' => $token,
+            'email' => $this->staff->email,
+            'password' => $chosen,
+            'password_confirmation' => $chosen,
+        ])->assertSessionHasNoErrors();
+
+        $this->assertTrue(Hash::check($chosen, $this->staff->fresh()->password));
+    }
+
+    public function test_both_emails_share_one_layout(): void
+    {
+        $welcome = (new AccountCreated('tok', 'Marites Owner'))->toMail($this->staff);
+        $reset = (new ResetPassword('tok'))->toMail($this->staff);
+
+        $this->assertSame($welcome->view, $reset->view, 'Both go through the same view pair.');
+    }
+
+    public function test_a_mail_failure_does_not_lose_the_account(): void
+    {
+        // A mail server that refuses the connection.
+        config([
+            'mail.default' => 'smtp',
+            'mail.mailers.smtp.host' => '127.0.0.1',
+            'mail.mailers.smtp.port' => 1,
+            'mail.mailers.smtp.timeout' => 2,
+        ]);
+
+        $this->actingAs($this->owner)
+            ->post(route('user-management.store'), $this->newUser(['send_email' => '1']))
+            ->assertRedirect()
+            ->assertSessionHas('swal.icon', 'warning');
+
+        $user = User::where('email', 'cashier@example.com')->sole();
+        $this->assertTrue(Hash::check($this->plain, $user->password), 'The typed password still works.');
     }
 
     public function test_a_failed_create_reopens_the_form_with_the_error(): void

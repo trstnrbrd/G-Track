@@ -7,6 +7,7 @@ use App\Models\User;
 use Illuminate\Auth\Events\PasswordReset;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Password;
 use Illuminate\Support\Str;
@@ -21,7 +22,25 @@ class NewPasswordController extends Controller
      */
     public function create(Request $request): View
     {
+        $this->signOutWhoeverIsHere($request);
+
         return view('auth.reset-password', ['request' => $request]);
+    }
+
+    /**
+     * The link belongs to the person it was sent to. If somebody else is signed
+     * in on this browser (typically the owner who just made the account), sign
+     * them out so the page opens for the new person instead of redirecting to
+     * the dashboard.
+     */
+    private function signOutWhoeverIsHere(Request $request): void
+    {
+        if (Auth::check()) {
+            Auth::guard('web')->logout();
+
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+        }
     }
 
     /**
@@ -31,6 +50,8 @@ class NewPasswordController extends Controller
      */
     public function store(Request $request): RedirectResponse
     {
+        $this->signOutWhoeverIsHere($request);
+
         $request->validate([
             'token' => ['required'],
             'email' => ['required', 'email'],

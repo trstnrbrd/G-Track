@@ -3,13 +3,16 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Notifications\AccountCreated;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Password as PasswordFacade;
 use Illuminate\Support\Str;
 use Illuminate\Validation\Rule;
 use Illuminate\Validation\Rules\Password;
 use Illuminate\View\View;
+use Throwable;
 
 /**
  * The owner creates accounts and resets passwords here. There is no public
@@ -54,6 +57,7 @@ class UserManagementController extends Controller
             'email' => ['required', 'string', 'email', 'max:255', Rule::unique('users', 'email')],
             'role' => ['required', Rule::in([User::ROLE_OWNER, User::ROLE_STAFF])],
             'password' => ['required', 'string', Password::defaults()],
+            'send_email' => ['nullable', 'boolean'],
         ]);
 
         $user = User::create([
@@ -63,10 +67,35 @@ class UserManagementController extends Controller
             'password' => $data['password'], // hashed by the model cast
         ]);
 
+        if (! $request->boolean('send_email')) {
+            return back()->with('swal', [
+                'icon' => 'success',
+                'title' => 'Account created',
+                'text' => "{$user->name} can now log in with {$user->email}. Give them the password you set.",
+            ]);
+        }
+
+        // The account exists whether or not the email goes out: a mail problem
+        // must never lose the account the owner just typed in.
+        try {
+            $token = PasswordFacade::broker()->createToken($user);
+            $user->notify(new AccountCreated($token, $request->user()->name));
+        } catch (Throwable $e) {
+            report($e);
+
+            return back()->with('swal', [
+                'icon' => 'warning',
+                'title' => 'Account created — email not sent',
+                'text' => "{$user->name} can log in with {$user->email} and the password you set. "
+                    .'The email could not be sent; check the mail settings.',
+            ]);
+        }
+
         return back()->with('swal', [
             'icon' => 'success',
             'title' => 'Account created',
-            'text' => "{$user->name} can now log in with {$user->email}. Give them the password you set.",
+            'text' => "A setup email was sent to {$user->email} (check Spam if it isn't in the inbox). "
+                .'The password you set also works until they choose their own.',
         ]);
     }
 

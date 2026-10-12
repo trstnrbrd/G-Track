@@ -211,14 +211,27 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Password <span class="text-red-500">*</span></label>
                         <div class="relative">
-                            <input :type="showPassword ? 'text' : 'password'" name="password" required autocomplete="new-password" minlength="8"
+                            <input :type="showPassword ? 'text' : 'password'" name="password" x-model="newPassword" required autocomplete="new-password" minlength="8"
                                 class="w-full px-3 py-2 pr-16 border rounded-lg focus:ring-2 focus:ring-gcash-500 focus:border-gcash-500 {{ $errors->createUser->has('password') ? 'border-red-400' : 'border-gray-300' }}">
                             <button type="button" @click="showPassword = ! showPassword"
                                     class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-semibold text-gcash-600" x-text="showPassword ? 'Hide' : 'Show'"></button>
                         </div>
+                        <x-password-strength value="newPassword" />
                         <p class="mt-1 text-xs text-gray-500">At least 8 characters. Tell it to them in person; they can change it in Settings.</p>
                         @if ($errors->createUser->has('password'))<p class="mt-1 text-xs text-red-600">{{ $errors->createUser->first('password') }}</p>@endif
                     </div>
+
+                    {{-- The email carries a "set your password" link, never the
+                         password. Untick it for someone without a real inbox. --}}
+                    <label class="flex items-start gap-2.5 rounded-xl border border-gray-200 bg-gray-50 p-3 cursor-pointer">
+                        <input type="checkbox" name="send_email" value="1"
+                               @checked($reopenCreate ? old('send_email') : true)
+                               class="mt-0.5 rounded border-gray-300 text-gcash-600 focus:ring-gcash-500">
+                        <span class="text-sm text-gray-700">
+                            Email them a link to set their own password
+                            <span class="block text-xs text-gray-500 mt-0.5">The password above still works until they do. Untick this if the email isn't a real inbox.</span>
+                        </span>
+                    </label>
 
                     <div class="flex gap-3 pt-1">
                         <button type="button" @click="createOpen = false"
@@ -263,11 +276,12 @@
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">New password <span class="text-red-500">*</span></label>
                         <div class="relative">
-                            <input :type="showPassword ? 'text' : 'password'" name="password" x-ref="resetPassword" required autocomplete="new-password" minlength="8"
+                            <input :type="showPassword ? 'text' : 'password'" name="password" x-model="resetValue" x-ref="resetPassword" required autocomplete="new-password" minlength="8"
                                 class="w-full px-3 py-2 pr-16 border rounded-lg focus:ring-2 focus:ring-gcash-500 focus:border-gcash-500 {{ $errors->resetPassword->has('password') ? 'border-red-400' : 'border-gray-300' }}">
                             <button type="button" @click="showPassword = ! showPassword"
                                     class="absolute right-2 top-1/2 -translate-y-1/2 px-2 py-1 text-xs font-semibold text-gcash-600" x-text="showPassword ? 'Hide' : 'Show'"></button>
                         </div>
+                        <x-password-strength value="resetValue" />
                         <p class="mt-1 text-xs text-gray-500">At least 8 characters.</p>
                         @if ($errors->resetPassword->has('password'))<p class="mt-1 text-xs text-red-600">{{ $errors->resetPassword->first('password') }}</p>@endif
                     </div>
@@ -297,9 +311,14 @@
                 resetName: config.reset ? config.reset.name : '',
                 resetUrl: config.reset ? config.reset.url : '',
 
+                // What's typed in each password box, so the strength bar can read it.
+                newPassword: '',
+                resetValue: '',
+
                 openCreate() {
                     this.submitting = false;
                     this.showPassword = false;
+                    this.newPassword = '';
                     this.createOpen = true;
                 },
 
@@ -309,6 +328,7 @@
                     this.resetUrl = user.url;
                     this.submitting = false;
                     this.showPassword = false;
+                    this.resetValue = '';
                     this.resetOpen = true;
                     this.$nextTick(() => this.$refs.resetPassword.focus());
                 },
