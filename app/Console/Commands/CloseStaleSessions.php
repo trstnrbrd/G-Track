@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Balance;
 use App\Models\DailySession;
+use App\Support\ShopSettings;
 use Illuminate\Console\Command;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Log;
@@ -33,7 +34,7 @@ class CloseStaleSessions extends Command
             return self::SUCCESS;
         }
 
-        $cutoffHours = (int) config('gtrack.auto_close_after_hours');
+        $cutoffHours = ShopSettings::autoCloseAfterHours();
 
         // Age is measured from the start of the day, not from the last
         // transaction — a quiet afternoon should not close the shop.

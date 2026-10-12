@@ -1,12 +1,54 @@
 import './bootstrap';
 
 import Alpine from 'alpinejs';
-import { passwordStrength } from './password-strength';
+import { MIN_LENGTH, passwordStrength } from './password-strength';
 
 window.Alpine = Alpine;
 
 // Used by <x-password-strength> in Alpine expressions.
 window.gtrackPasswordStrength = passwordStrength;
+
+/**
+ * The "change my password" form (Settings and Profile): current + new + confirm.
+ * Mirrors the server's min:8 and `confirmed` rules for instant feedback; the
+ * server still re-checks. The strength bar already says "N more characters to
+ * go", so length gets no second message.
+ */
+Alpine.data('updatePasswordForm', (config = {}) => ({
+    current: '',
+    password: '',
+    confirmation: '',
+    serverCurrent: config.serverCurrent || '',
+    serverPassword: config.serverPassword || '',
+    submitting: false,
+
+    get tooShort() {
+        return this.password.length > 0 && this.password.length < MIN_LENGTH;
+    },
+
+    get mismatch() {
+        return this.confirmation.length > 0 && this.confirmation !== this.password;
+    },
+
+    get matches() {
+        return this.password.length >= MIN_LENGTH && this.confirmation === this.password;
+    },
+
+    get blockedReason() {
+        if (! this.current) return 'Enter your current password.';
+        if (! this.password) return 'Enter a new password.';
+        if (this.password.length < MIN_LENGTH) return 'Use at least ' + MIN_LENGTH + ' characters.';
+        if (! this.confirmation) return 'Type the new password again.';
+        if (this.mismatch) return "The two passwords don't match yet.";
+
+        return '';
+    },
+
+    // Say it near the button only when nothing above already has.
+    get showReason() {
+        return !! this.blockedReason && ! this.tooShort && ! this.mismatch;
+    },
+}));
 
 Alpine.start();
 

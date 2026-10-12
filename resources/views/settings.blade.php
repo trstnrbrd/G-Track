@@ -2,13 +2,15 @@
     @php
         $user = Auth::user();
         $initial = strtoupper(substr(explode(' ', trim($user->name))[0], 0, 1));
+        $field = 'w-full px-4 py-3 rounded-xl border bg-gray-50 text-gray-900 text-sm placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition';
     @endphp
 
-    <div class="max-w-3xl mx-auto px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+    {{-- .pb-safe-nav clears the mobile tab bar (it overrides the py-* bottom padding). --}}
+    <div class="max-w-3xl mx-auto px-4 py-6 sm:px-6 lg:px-8 lg:py-8 pb-safe-nav">
         <div class="mb-6 lg:mb-8">
-            <p class="text-sm font-medium text-gray-400">Account preferences</p>
+            <p class="text-sm font-medium text-gray-600">Account preferences</p>
             <h2 class="mt-1 text-2xl font-bold tracking-tight text-gray-900">Settings</h2>
-            <p class="mt-2 text-sm text-gray-500">View your account details and preferences.</p>
+            <p class="mt-2 text-sm text-gray-600">Your account, your password, and how GTrack looks on this device.</p>
         </div>
 
         <section class="overflow-hidden rounded-2xl border border-gray-200 bg-surface" aria-labelledby="account-heading">
@@ -20,8 +22,8 @@
                     <h3 id="account-heading" class="truncate text-base font-semibold text-gray-900">{{ $user->name }}</h3>
                     <p class="mt-0.5 truncate text-sm text-gray-500">{{ $user->email }}</p>
                 </div>
-                <span class="ml-auto shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold capitalize text-blue-700">
-                    {{ str_replace('_', ' ', $user->role) }}
+                <span class="ml-auto shrink-0 rounded-full bg-blue-50 px-2.5 py-1 text-xs font-semibold text-blue-700">
+                    {{ $user->isSuperAdmin() ? 'Owner' : 'Staff' }}
                 </span>
             </div>
         </section>
@@ -33,18 +35,68 @@
             </div>
 
             <div class="divide-y divide-gray-100">
-                <div class="flex items-center gap-3 px-5 py-4 sm:px-6">
-                    <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
-                        <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 7.5h.008v.008H16.5V7.5zM8.25 7.5h.008v.008H8.25V7.5zM9 12h6m-6 0a3 3 0 106 0m-6 0H7.5a3 3 0 00-3 3v1.5A1.5 1.5 0 006 18h12a1.5 1.5 0 001.5-1.5V15a3 3 0 00-3-3H15m-6 0V9a3 3 0 016 0v3"/></svg>
+
+                {{-- ===== Name and email ===== --}}
+                <div x-data="settingsProfileForm({
+                        open: @js($errors->updateProfile->any()),
+                        name: @js(old('name', $user->name)),
+                        email: @js(old('email', $user->email)),
+                        savedName: @js($user->name),
+                        savedEmail: @js($user->email),
+                        serverName: @js($errors->updateProfile->first('name')),
+                        serverEmail: @js($errors->updateProfile->first('email')),
+                     })"
+                     class="px-5 py-4 sm:px-6">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-blue-50 text-blue-600">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 6a3.75 3.75 0 11-7.5 0 3.75 3.75 0 017.5 0zM4.501 20.118a7.5 7.5 0 0114.998 0A17.933 17.933 0 0112 21.75c-2.676 0-5.216-.584-7.499-1.632z"/></svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium text-gray-800">Profile details</p>
+                            <p class="mt-0.5 truncate text-sm text-gray-500">{{ $user->name }} · {{ $user->email }}</p>
+                            @if (session('status') === 'profile-updated')
+                                <p class="mt-1 text-sm font-medium text-blue-600">Saved.</p>
+                            @endif
+                        </div>
+                        <button type="button" @click="open = ! open" :aria-expanded="open"
+                                class="shrink-0 rounded-lg px-3 py-2 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            <span x-text="open ? 'Cancel' : 'Edit'"></span>
+                        </button>
                     </div>
-                    <div class="min-w-0 flex-1">
-                        <p class="text-sm font-medium text-gray-800">Profile details</p>
-                        <p class="mt-0.5 text-sm text-gray-500">{{ $user->name }} · {{ $user->email }}</p>
+
+                    <div x-cloak x-show="open" x-transition class="mt-4 border-t border-gray-100 pt-4">
+                        <form method="post" action="{{ route('settings.profile') }}" class="space-y-4" @submit="submitting = true" novalidate>
+                            @csrf
+                            @method('patch')
+
+                            <div>
+                                <label for="settings_name" class="block text-sm font-semibold text-gray-700 mb-1.5">Full name</label>
+                                <input id="settings_name" name="name" type="text" x-model="name" @input="serverName = ''" maxlength="255" autocomplete="name"
+                                       class="{{ $field }}" :class="nameError ? 'border-red-400 ring-1 ring-red-200' : 'border-gray-200'">
+                                <p x-show="nameError" x-cloak x-text="nameError" class="mt-1.5 text-xs font-medium text-red-500"></p>
+                            </div>
+
+                            <div>
+                                <label for="settings_email" class="block text-sm font-semibold text-gray-700 mb-1.5">Email</label>
+                                <input id="settings_email" name="email" type="email" x-model="email" @input="serverEmail = ''" maxlength="255" autocomplete="username"
+                                       class="{{ $field }}" :class="emailError ? 'border-red-400 ring-1 ring-red-200' : 'border-gray-200'">
+                                <p x-show="emailError" x-cloak x-text="emailError" class="mt-1.5 text-xs font-medium text-red-500"></p>
+                                <p x-show="! emailError" class="mt-1.5 text-xs text-gray-500">This is also how you sign in, and where password links are sent.</p>
+                            </div>
+
+                            <div class="flex flex-wrap items-center gap-3">
+                                <button type="submit" :disabled="!! blockedReason || submitting"
+                                        class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                    Save changes
+                                </button>
+                                <p x-show="blockedReason && ! nameError && ! emailError" x-cloak x-text="blockedReason" class="text-sm text-gray-500"></p>
+                            </div>
+                        </form>
                     </div>
-                    <span class="text-xs font-medium text-gray-400">View only</span>
                 </div>
 
-                <div x-data="{ open: {{ $errors->updatePassword->any() || session('status') === 'password-updated' ? 'true' : 'false' }}, visible: { current: false, new: false, confirmation: false } }" class="px-5 py-4 sm:px-6">
+                {{-- ===== Password ===== --}}
+                <div x-data="{ open: {{ $errors->updatePassword->any() || session('status') === 'password-updated' ? 'true' : 'false' }} }" class="px-5 py-4 sm:px-6">
                     <div class="flex items-center gap-3">
                         <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
                             <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M16.5 10.5V6.75a4.5 4.5 0 00-9 0v3.75m-1.5 0h12a1.5 1.5 0 011.5 1.5v7.5A1.5 1.5 0 0116.5 21h-9A1.5 1.5 0 016 19.5V12a1.5 1.5 0 011.5-1.5z"/></svg>
@@ -52,86 +104,124 @@
                         <div class="flex-1">
                             <p class="text-sm font-medium text-gray-800">Password</p>
                             <p class="mt-0.5 text-sm text-gray-500">Keep your account secure with a strong password.</p>
+                            @if (session('status') === 'password-updated')
+                                <p class="mt-1 text-sm font-medium text-blue-600">Password updated.</p>
+                            @endif
                         </div>
-                        <button type="button" @click="open = !open" :aria-expanded="open"
+                        <button type="button" @click="open = ! open" :aria-expanded="open"
                                 class="shrink-0 rounded-lg px-3 py-2 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                             <span x-text="open ? 'Cancel' : 'Change'"></span>
                         </button>
                     </div>
 
                     <div x-cloak x-show="open" x-transition class="mt-4 border-t border-gray-100 pt-4">
-                        <form method="post" action="{{ route('password.update') }}" class="space-y-4">
+                        {{-- Same behaviour as the set-password page: eye, weak → strong
+                             bar, live checks, and a Save that says why it's disabled. --}}
+                        <form method="post" action="{{ route('password.update') }}" class="space-y-4"
+                              x-data="updatePasswordForm({
+                                  serverCurrent: @js($errors->updatePassword->first('current_password')),
+                                  serverPassword: @js($errors->updatePassword->first('password')),
+                              })"
+                              @submit="submitting = true" novalidate>
                             @csrf
                             @method('put')
 
                             <div>
-                                <label for="settings_current_password" class="block text-sm font-medium text-gray-700">Current password</label>
-                                <div class="relative mt-1">
-                                    <input id="settings_current_password" name="current_password" :type="visible.current ? 'text' : 'password'"
-                                           autocomplete="current-password"
-                                           class="block w-full rounded-xl border-gray-300 pr-11 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <button type="button" @click="visible.current = !visible.current"
-                                            :aria-label="visible.current ? 'Hide current password' : 'Show current password'"
-                                            class="absolute inset-y-0 right-1 flex w-10 items-center justify-center text-gray-400 transition hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
-                                        <svg x-show="!visible.current" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.5-6 9.75-6 9.75 6 9.75 6-3.5 6-9.75 6-9.75-6-9.75-6z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                        <svg x-show="visible.current" x-cloak class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.584 10.587a2 2 0 002.829 2.829M9.88 5.09A10.76 10.76 0 0112 4.875c6.25 0 9.75 7.125 9.75 7.125a17.3 17.3 0 01-2.04 2.91M6.228 6.228C3.72 7.9 2.25 12 2.25 12s3.5 7.125 9.75 7.125a10.8 10.8 0 004.09-.8"/></svg>
-                                    </button>
-                                </div>
-                                @if ($errors->updatePassword->has('current_password'))
-                                    <p class="mt-1 text-sm text-red-600">{{ $errors->updatePassword->first('current_password') }}</p>
-                                @endif
+                                <label for="settings_current_password" class="block text-sm font-semibold text-gray-700 mb-1.5">Current password</label>
+                                <x-password-input id="settings_current_password" name="current_password" model="current"
+                                                  autocomplete="current-password" invalid="!! serverCurrent" @input="serverCurrent = ''" />
+                                <p x-show="serverCurrent" x-cloak x-text="serverCurrent" class="mt-1.5 text-xs font-medium text-red-500"></p>
                             </div>
 
                             <div>
-                                <label for="settings_password" class="block text-sm font-medium text-gray-700">New password</label>
-                                <div class="relative mt-1">
-                                    <input id="settings_password" name="password" :type="visible.new ? 'text' : 'password'"
-                                           autocomplete="new-password"
-                                           class="block w-full rounded-xl border-gray-300 pr-11 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <button type="button" @click="visible.new = !visible.new"
-                                            :aria-label="visible.new ? 'Hide new password' : 'Show new password'"
-                                            class="absolute inset-y-0 right-1 flex w-10 items-center justify-center text-gray-400 transition hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
-                                        <svg x-show="!visible.new" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.5-6 9.75-6 9.75 6 9.75 6-3.5 6-9.75 6-9.75-6-9.75-6z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                        <svg x-show="visible.new" x-cloak class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.584 10.587a2 2 0 002.829 2.829M9.88 5.09A10.76 10.76 0 0112 4.875c6.25 0 9.75 7.125 9.75 7.125a17.3 17.3 0 01-2.04 2.91M6.228 6.228C3.72 7.9 2.25 12 2.25 12s3.5 7.125 9.75 7.125a10.8 10.8 0 004.09-.8"/></svg>
-                                    </button>
-                                </div>
-                                @if ($errors->updatePassword->has('password'))
-                                    <p class="mt-1 text-sm text-red-600">{{ $errors->updatePassword->first('password') }}</p>
-                                @endif
+                                <label for="settings_password" class="block text-sm font-semibold text-gray-700 mb-1.5">New password</label>
+                                <x-password-input id="settings_password" name="password" model="password"
+                                                  invalid="tooShort || !! serverPassword" @input="serverPassword = ''" />
+                                <x-password-strength value="password" />
+                                <p x-show="serverPassword" x-cloak x-text="serverPassword" class="mt-1.5 text-xs font-medium text-red-500"></p>
                             </div>
 
                             <div>
-                                <label for="settings_password_confirmation" class="block text-sm font-medium text-gray-700">Confirm new password</label>
-                                <div class="relative mt-1">
-                                    <input id="settings_password_confirmation" name="password_confirmation" :type="visible.confirmation ? 'text' : 'password'"
-                                           autocomplete="new-password"
-                                           class="block w-full rounded-xl border-gray-300 pr-11 text-sm shadow-sm focus:border-blue-500 focus:ring-blue-500">
-                                    <button type="button" @click="visible.confirmation = !visible.confirmation"
-                                            :aria-label="visible.confirmation ? 'Hide password confirmation' : 'Show password confirmation'"
-                                            class="absolute inset-y-0 right-1 flex w-10 items-center justify-center text-gray-400 transition hover:text-gray-600 focus:outline-none focus:ring-2 focus:ring-inset focus:ring-blue-500">
-                                        <svg x-show="!visible.confirmation" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 12s3.5-6 9.75-6 9.75 6 9.75 6-3.5 6-9.75 6-9.75-6-9.75-6z"/><path stroke-linecap="round" stroke-linejoin="round" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"/></svg>
-                                        <svg x-show="visible.confirmation" x-cloak class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" d="M3 3l18 18M10.584 10.587a2 2 0 002.829 2.829M9.88 5.09A10.76 10.76 0 0112 4.875c6.25 0 9.75 7.125 9.75 7.125a17.3 17.3 0 01-2.04 2.91M6.228 6.228C3.72 7.9 2.25 12 2.25 12s3.5 7.125 9.75 7.125a10.8 10.8 0 004.09-.8"/></svg>
-                                    </button>
-                                </div>
-                                @if ($errors->updatePassword->has('password_confirmation'))
-                                    <p class="mt-1 text-sm text-red-600">{{ $errors->updatePassword->first('password_confirmation') }}</p>
-                                @endif
+                                <label for="settings_password_confirmation" class="block text-sm font-semibold text-gray-700 mb-1.5">Confirm new password</label>
+                                <x-password-input id="settings_password_confirmation" name="password_confirmation" model="confirmation"
+                                                  invalid="mismatch" @input="serverPassword = ''" />
+                                <p x-show="mismatch" x-cloak class="mt-1.5 text-xs font-medium text-red-500">Doesn't match yet.</p>
+                                <p x-show="matches" x-cloak class="mt-1.5 flex items-center gap-1 text-xs font-medium text-blue-600">
+                                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5"/></svg>
+                                    Passwords match
+                                </p>
                             </div>
 
-                            <div class="flex items-center gap-3">
-                                <button type="submit"
-                                        class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                            <div class="flex flex-wrap items-center gap-3">
+                                <button type="submit" :disabled="!! blockedReason || submitting"
+                                        class="rounded-xl bg-blue-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-blue-700 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
                                     Update password
                                 </button>
-                                @if (session('status') === 'password-updated')
-                                    <p class="text-sm font-medium text-green-600">Password updated.</p>
-                                @endif
+                                <p x-show="showReason" x-cloak x-text="blockedReason" class="text-sm text-gray-500"></p>
                             </div>
                         </form>
                     </div>
                 </div>
+
+                {{-- ===== Other devices ===== --}}
+                <div x-data="{ open: {{ $errors->signOutOthers->any() ? 'true' : 'false' }}, confirmation: '' }" class="px-5 py-4 sm:px-6">
+                    <div class="flex items-center gap-3">
+                        <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gray-100 text-gray-600">
+                            <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.8"><path stroke-linecap="round" stroke-linejoin="round" d="M10.5 1.5H8.25A2.25 2.25 0 006 3.75v16.5a2.25 2.25 0 002.25 2.25h7.5A2.25 2.25 0 0018 20.25V3.75a2.25 2.25 0 00-2.25-2.25H13.5m-3 0V3h3V1.5m-3 0h3m-3 18.75h3"/></svg>
+                        </div>
+                        <div class="min-w-0 flex-1">
+                            <p class="text-sm font-medium text-gray-800">Other devices</p>
+                            <p class="mt-0.5 text-sm text-gray-500">
+                                @if ($otherDevices === null)
+                                    Signing out other devices isn't available on this setup.
+                                @elseif ($otherDevices['count'] === 0)
+                                    You're only signed in on this device.
+                                @else
+                                    Signed in on {{ $otherDevices['count'] }} other {{ Str::plural('device', $otherDevices['count']) }}@if ($otherDevices['last_active']) · last active {{ $otherDevices['last_active']->diffForHumans() }}@endif.
+                                @endif
+                            </p>
+                            @if (session('status') === 'signed-out-others')
+                                <p class="mt-1 text-sm font-medium text-blue-600">Signed out everywhere else.</p>
+                            @endif
+                        </div>
+                        @if ($otherDevices !== null && $otherDevices['count'] > 0)
+                            <button type="button" @click="open = ! open" :aria-expanded="open"
+                                    class="shrink-0 rounded-lg px-3 py-2 text-xs font-semibold text-blue-600 transition hover:bg-blue-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2">
+                                <span x-text="open ? 'Cancel' : 'Sign out'"></span>
+                            </button>
+                        @endif
+                    </div>
+
+                    @if ($otherDevices !== null && $otherDevices['count'] > 0)
+                        <div x-cloak x-show="open" x-transition class="mt-4 border-t border-gray-100 pt-4">
+                            <form method="post" action="{{ route('settings.sign-out-others') }}" class="space-y-4" novalidate>
+                                @csrf
+                                <div>
+                                    <label for="settings_signout_password" class="block text-sm font-semibold text-gray-700 mb-1.5">Your current password</label>
+                                    <x-password-input id="settings_signout_password" name="current_password" model="confirmation"
+                                                      autocomplete="current-password"
+                                                      invalid="{{ $errors->signOutOthers->has('current_password') ? 'true' : 'false' }}" />
+                                    @if ($errors->signOutOthers->has('current_password'))
+                                        <p class="mt-1.5 text-xs font-medium text-red-500">{{ $errors->signOutOthers->first('current_password') }}</p>
+                                    @endif
+                                    <p class="mt-1.5 text-xs text-gray-500">This device stays signed in. Everyone else has to sign in again.</p>
+                                </div>
+                                <button type="submit" :disabled="! confirmation"
+                                        class="rounded-xl bg-red-600 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-red-700 disabled:opacity-40 disabled:cursor-not-allowed focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2">
+                                    Sign out other devices
+                                </button>
+                                <p x-show="! confirmation" x-cloak class="text-sm text-gray-500">Enter your password to continue.</p>
+                            </form>
+                        </div>
+                    @endif
+                </div>
             </div>
         </section>
+
+        {{-- Owner only: rates, quick amounts, auto-close, and the backup. --}}
+        @if ($shop)
+            @include('settings.partials.owner', ['shop' => $shop])
+        @endif
 
         <section class="mt-5 overflow-hidden rounded-2xl border border-gray-200 bg-surface" aria-labelledby="app-settings-heading">
             <div class="border-b border-gray-100 px-5 py-4 sm:px-6">
@@ -172,7 +262,51 @@
                 </div>
             </div>
         </section>
-
-        <p class="mt-5 px-1 text-xs leading-5 text-gray-400">Editing options will be available here in a future update.</p>
     </div>
+
+    <script>
+        // Name + email. Mirrors the server rules (required name, a valid email);
+        // the server re-checks, and also refuses an email that's already taken.
+        function settingsProfileForm(config) {
+            return {
+                open: config.open,
+                name: config.name,
+                email: config.email,
+                savedName: config.savedName,
+                savedEmail: config.savedEmail,
+                serverName: config.serverName || '',
+                serverEmail: config.serverEmail || '',
+                submitting: false,
+
+                get nameError() {
+                    if (this.serverName) return this.serverName;
+
+                    return this.name.trim() === '' ? 'Enter your name.' : '';
+                },
+
+                get emailError() {
+                    if (this.serverEmail) return this.serverEmail;
+
+                    const value = this.email.trim();
+
+                    if (value === '') return 'Enter your email.';
+
+                    return /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(value) ? '' : 'That doesn\'t look like an email address.';
+                },
+
+                get unchanged() {
+                    return this.name.trim() === this.savedName
+                        && this.email.trim().toLowerCase() === this.savedEmail.toLowerCase();
+                },
+
+                get blockedReason() {
+                    if (this.nameError) return this.nameError;
+                    if (this.emailError) return this.emailError;
+                    if (this.unchanged) return 'Change your name or email to save.';
+
+                    return '';
+                },
+            };
+        }
+    </script>
 </x-app-layout>

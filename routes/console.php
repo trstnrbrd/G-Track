@@ -1,5 +1,6 @@
 <?php
 
+use App\Console\Commands\BackupDatabase;
 use App\Console\Commands\CloseStaleSessions;
 use Illuminate\Foundation\Inspiring;
 use Illuminate\Support\Facades\Artisan;
@@ -25,4 +26,12 @@ Artisan::command('inspire', function () {
 // time, so the cutoff still applies if the PC was asleep at the appointed hour.
 Schedule::command(CloseStaleSessions::class)
     ->hourly()
+    ->withoutOverlapping();
+
+// A copy of the shop data every night, kept on this PC (newest 14). It guards
+// against a database that stops starting — it is NOT a replacement for also
+// downloading one from Settings now and then: a copy on the same disk doesn't
+// survive that disk.
+Schedule::command(BackupDatabase::class)
+    ->dailyAt('23:30')
     ->withoutOverlapping();

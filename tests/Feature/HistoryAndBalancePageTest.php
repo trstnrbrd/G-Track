@@ -87,10 +87,10 @@ class HistoryAndBalancePageTest extends TestCase
     }
 
     /**
-     * Nothing is hidden by default — older rows are right there — and picking a
-     * narrower range still narrows it.
+     * History opens on today's rows, while older entries remain available via
+     * the explicit all-time range.
      */
-    public function test_history_shows_older_rows_by_default_and_respects_a_chosen_range(): void
+    public function test_history_defaults_to_today_and_respects_a_chosen_range(): void
     {
         $old = $this->txn(['reference_number' => 'LAST-MONTH']);
         $old->forceFill(['created_at' => now()->subMonths(2)])->save();
@@ -98,13 +98,48 @@ class HistoryAndBalancePageTest extends TestCase
 
         $this->actingAs($this->user)->get(route('history'))
             ->assertOk()
-            ->assertSee('LAST-MONTH')
-            ->assertSee('THIS-ONE-IS-TODAY');
-
-        $this->actingAs($this->user)->get(route('history', ['range' => 'today']))
-            ->assertOk()
             ->assertDontSee('LAST-MONTH')
             ->assertSee('THIS-ONE-IS-TODAY');
+
+        $this->actingAs($this->user)->get(route('history', ['range' => 'all']))
+            ->assertOk()
+            ->assertSee('LAST-MONTH')
+            ->assertSee('THIS-ONE-IS-TODAY');
+    }
+
+    /**
+     * Rows from different days are separated by a heading, so it's clear which
+     * day a row belongs to. One heading per change of day, not per row.
+     */
+    public function test_history_separates_the_days(): void
+    {
+        $this->txn(['reference_number' => 'TODAY-1']);
+        $this->txn(['reference_number' => 'TODAY-2']);
+
+        $yesterday = $this->txn(['reference_number' => 'YESTERDAY-1']);
+        $yesterday->forceFill(['created_at' => now()->subDay()])->save();
+
+        $older = $this->txn(['reference_number' => 'OLDER-1']);
+        $older->forceFill(['created_at' => now()->subDays(4)])->save();
+
+        $html = $this->actingAs($this->user)
+            ->get(route('history', ['range' => 'week']))
+            ->assertOk()
+            ->getContent();
+
+        // Three different days = three headings, and History renders a desktop
+        // table and a phone list, so six separators in all. Never one per row:
+        // TODAY-1 and TODAY-2 share a heading.
+        $this->assertSame(6, substr_count($html, 'role="separator"'));
+
+        $today = strpos($html, 'Today · '.now()->format('D, M j'));
+        $yesterday = strpos($html, 'Yesterday · '.now()->subDay()->format('D, M j'));
+        $older = strpos($html, now()->subDays(4)->format('D, M j'));
+
+        $this->assertNotFalse($today);
+        $this->assertNotFalse($yesterday);
+        $this->assertNotFalse($older);
+        $this->assertTrue($today < $yesterday && $yesterday < $older, 'Newest day first.');
     }
 
     /**
@@ -205,7 +240,12 @@ class HistoryAndBalancePageTest extends TestCase
         $this->actingAs($this->user)->post(route('day.end'))->assertRedirect();
 
         // Right after End Day: no session is open, but nothing has gone anywhere.
+        // History opens on today; yesterday's row is one range choice away.
         $this->actingAs($this->user)->get(route('history'))
+            ->assertSee('FROM-TODAY-BEFORE-END')
+            ->assertDontSee('FROM-YESTERDAY');
+
+        $this->actingAs($this->user)->get(route('history', ['range' => 'week']))
             ->assertSee('FROM-YESTERDAY')
             ->assertSee('FROM-TODAY-BEFORE-END');
 
@@ -218,7 +258,7 @@ class HistoryAndBalancePageTest extends TestCase
             ->post(route('day.start'), ['starting_gcash' => 5000, 'starting_cash' => 3000])
             ->assertRedirect();
 
-        $this->actingAs($this->user)->get(route('history'))
+        $this->actingAs($this->user)->get(route('history', ['range' => 'all']))
             ->assertSee('FROM-YESTERDAY')
             ->assertSee('FROM-TODAY-BEFORE-END');
     }

@@ -25,7 +25,7 @@
     ];
 @endphp
 
-<div class="grid {{ $compact ? 'grid-cols-2 gap-3' : 'grid-cols-4 gap-4' }}">
+<div class="grid {{ $compact ? 'grid-cols-2 gap-2' : 'grid-cols-4 gap-4' }}">
     @foreach ($cards as [$label, $value, $tone, $icon])
         <div class="flex items-center gap-3 rounded-2xl bg-surface shadow-sm {{ $compact ? 'p-3' : 'p-4' }}">
             <div class="flex shrink-0 items-center justify-center rounded-full {{ $compact ? 'h-8 w-8' : 'h-9 w-9' }} {{ $tone }}">

@@ -245,6 +245,23 @@ class StoreSaleTest extends TestCase
         $this->assertSame(1, StoreSale::count());
     }
 
+    public function test_the_store_list_names_each_day(): void
+    {
+        $session = $this->openDay();
+
+        StoreSale::create(['daily_session_id' => $session->id, 'user_id' => $this->user->id, 'amount' => 100]);
+
+        $older = StoreSale::create(['daily_session_id' => $session->id, 'user_id' => $this->user->id, 'amount' => 50]);
+        $older->forceFill(['created_at' => now()->subDays(3)])->save();
+
+        $html = $this->actingAs($this->user)->get(route('store'))->assertOk()->getContent();
+
+        // Two days, in both layouts.
+        $this->assertSame(4, substr_count($html, 'role="separator"'));
+        $this->assertStringContainsString('Today · '.now()->format('D, M j'), $html);
+        $this->assertStringContainsString(now()->subDays(3)->format('D, M j'), $html);
+    }
+
     public function test_guests_cannot_see_or_record_store_sales(): void
     {
         $this->get(route('store'))->assertRedirect(route('login'));

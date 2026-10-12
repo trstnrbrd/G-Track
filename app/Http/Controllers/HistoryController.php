@@ -53,10 +53,9 @@ class HistoryController extends Controller
         ]);
 
         return [
-            // All time by default: staff reach for History to find an older
-            // entry (or fill in a reference they skipped), and a default of
-            // "today" made yesterday's rows look deleted.
-            'range' => $validated['range'] ?? 'all',
+            // History opens on today's transactions; older entries remain
+            // available through the explicit date-range filters.
+            'range' => $validated['range'] ?? 'today',
             'type' => $validated['type'] ?? 'all',
             'search' => $validated['search'] ?? null,
             'from' => $validated['from'] ?? null,

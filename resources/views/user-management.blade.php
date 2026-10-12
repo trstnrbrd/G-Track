@@ -109,14 +109,14 @@
         {{-- ============================================================ --}}
         {{-- ===============   MOBILE VIEW (below lg)     =============== --}}
         {{-- ============================================================ --}}
-        <div class="lg:hidden max-w-md mx-auto min-h-screen bg-canvas px-5 py-6 pb-safe-nav">
+         <div class="lg:hidden max-w-md mx-auto min-h-screen bg-canvas px-3 py-3 pb-safe-nav">
 
             <button type="button" @click="openCreate()"
-                    class="w-full py-3 rounded-xl font-semibold text-white bg-gcash-600 hover:bg-gcash-700 transition active:scale-95 mb-5">
+                    class="w-full py-3 rounded-xl font-semibold text-white bg-gcash-600 hover:bg-gcash-700 transition active:scale-95 mb-3">
                 Add user
             </button>
 
-            <form method="GET" action="{{ route('user-management') }}" class="bg-surface rounded-2xl border border-gray-200 p-4 mb-5 space-y-3">
+            <form method="GET" action="{{ route('user-management') }}" class="bg-surface rounded-2xl border border-gray-200 p-3 mb-2 space-y-2">
                 <input type="text" name="search" value="{{ $filters['search'] }}" placeholder="Name or email..."
                     class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gcash-500 focus:border-gcash-500">
                 <select name="role" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-gcash-500 focus:border-gcash-500">
@@ -128,7 +128,7 @@
             </form>
 
             @forelse ($users as $user)
-                <div class="bg-surface rounded-2xl border border-gray-200 p-4 mb-3">
+                <div class="bg-surface rounded-2xl border border-gray-200 p-3 mb-2">
                     <div class="flex items-start justify-between gap-3">
                         <div class="min-w-0">
                             <p class="text-sm font-semibold text-gray-900 truncate">
@@ -148,7 +148,7 @@
                     @endunless
                 </div>
             @empty
-                <div class="bg-surface rounded-2xl border border-gray-200 p-8 text-center">
+                <div class="bg-surface rounded-2xl border border-gray-200 p-6 text-center">
                     <p class="text-sm font-medium text-gray-900">No users found</p>
                     <p class="mt-1 text-xs text-gray-500">Try a different search or role.</p>
                 </div>

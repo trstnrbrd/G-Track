@@ -86,44 +86,5 @@
         </div>
     </form>
 
-    <script>
-        function updatePasswordForm(config) {
-            const MIN = 8;
 
-            return {
-                current: '',
-                password: '',
-                confirmation: '',
-                serverCurrent: config.serverCurrent || '',
-                serverPassword: config.serverPassword || '',
-                submitting: false,
-
-                get tooShort() {
-                    return this.password.length > 0 && this.password.length < MIN;
-                },
-
-                get mismatch() {
-                    return this.confirmation.length > 0 && this.confirmation !== this.password;
-                },
-
-                get matches() {
-                    return this.password.length >= MIN && this.confirmation === this.password;
-                },
-
-                get blockedReason() {
-                    if (! this.current) return 'Enter your current password.';
-                    if (! this.password) return 'Enter a new password.';
-                    if (this.password.length < MIN) return 'Use at least ' + MIN + ' characters.';
-                    if (! this.confirmation) return 'Type the new password again.';
-                    if (this.mismatch) return "The two passwords don't match yet.";
-
-                    return '';
-                },
-
-                get showReason() {
-                    return !! this.blockedReason && ! this.tooShort && ! this.mismatch;
-                },
-            };
-        }
-    </script>
 </section>
