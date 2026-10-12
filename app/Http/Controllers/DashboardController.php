@@ -20,7 +20,6 @@ class DashboardController extends Controller
             'service_charge' => 0,
             'count' => 0,
         ];
-        $recent = collect();
 
         if ($session) {
             $base = Transaction::where('daily_session_id', $session->id);
@@ -29,9 +28,12 @@ class DashboardController extends Controller
             $stats['cash_out'] = (clone $base)->where('type', 'cash_out')->sum('amount');
             $stats['service_charge'] = (clone $base)->sum('service_charge');
             $stats['count'] = (clone $base)->count();
-
-            $recent = (clone $base)->latest()->take(8)->get();
         }
+
+        // Recent is the latest entries overall, not just the open session's:
+        // pressing End Day must not empty it, and the late-night job of adding
+        // a missing reference or number happens right after closing.
+        $recent = Transaction::query()->latest('created_at')->latest('id')->take(8)->get();
 
         // The modal renders its rate guide and live preview from the same
         // brackets the server charges from — never a second hardcoded copy.

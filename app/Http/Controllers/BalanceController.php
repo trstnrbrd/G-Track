@@ -46,9 +46,11 @@ class BalanceController extends Controller
     private function applyRange(Builder $query, string $range): void
     {
         match ($range) {
-            'week' => $query->where('started_at', '>=', now()->startOfWeek()),
+            // Rolling 7 days (see HistoryController): a Monday-start week is
+            // empty on Monday morning.
+            'week' => $query->where('started_at', '>=', today()->subDays(6)),
             'month' => $query->where('started_at', '>=', now()->startOfMonth()),
-            'last30' => $query->where('started_at', '>=', now()->subDays(30)),
+            'last30' => $query->where('started_at', '>=', today()->subDays(29)),
             default => null,
         };
     }

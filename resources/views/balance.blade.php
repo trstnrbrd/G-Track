@@ -1,7 +1,7 @@
 <x-app-layout>
 
     @php
-        $rangeOptions = ['week' => 'This Week', 'month' => 'This Month', 'last30' => 'Last 30 Days', 'all' => 'All Time'];
+        $rangeOptions = ['week' => 'Last 7 Days', 'month' => 'This Month', 'last30' => 'Last 30 Days', 'all' => 'All Time'];
 
         // Net change = what the day actually added to the till across both
         // balances. For a well-recorded day this equals the service charges

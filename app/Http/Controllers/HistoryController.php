@@ -45,7 +45,7 @@ class HistoryController extends Controller
     private function filters(Request $request): array
     {
         $validated = $request->validate([
-            'range' => ['nullable', 'in:today,week,month,all,custom'],
+            'range' => ['nullable', 'in:today,week,month,last30,all,custom'],
             'type' => ['nullable', 'in:all,cash_in,cash_out'],
             'search' => ['nullable', 'string', 'max:50'],
             'from' => ['nullable', 'date'],
@@ -53,7 +53,10 @@ class HistoryController extends Controller
         ]);
 
         return [
-            'range' => $validated['range'] ?? 'today',
+            // All time by default: staff reach for History to find an older
+            // entry (or fill in a reference they skipped), and a default of
+            // "today" made yesterday's rows look deleted.
+            'range' => $validated['range'] ?? 'all',
             'type' => $validated['type'] ?? 'all',
             'search' => $validated['search'] ?? null,
             'from' => $validated['from'] ?? null,
@@ -65,8 +68,11 @@ class HistoryController extends Controller
     {
         match ($filters['range']) {
             'today' => $query->whereDate('created_at', today()),
-            'week' => $query->where('created_at', '>=', now()->startOfWeek()),
+            // A rolling 7 days, not Monday-to-now: on a Monday morning "this
+            // week" would be empty even though yesterday's rows exist.
+            'week' => $query->where('created_at', '>=', today()->subDays(6)),
             'month' => $query->where('created_at', '>=', now()->startOfMonth()),
+            'last30' => $query->where('created_at', '>=', today()->subDays(29)),
             'custom' => $this->applyCustomRange($query, $filters),
             default => null,
         };

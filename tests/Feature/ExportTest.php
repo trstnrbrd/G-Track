@@ -142,10 +142,19 @@ class ExportTest extends TestCase
     {
         $this->txn();
 
+        // No range given: same default as the History page, which is all time.
         $this->actingAs($this->user)->get(route('export.transactions', ['type' => 'cash_in', 'search' => '0917']));
 
         $this->assertSame(
-            'Today · '.now()->format('M j, Y').' · Cash in only · Matching "0917"',
+            'All time · Cash in only · Matching "0917"',
+            $this->rendered['exports.transactions']['scope'],
+        );
+
+        // A chosen range is still spelled out.
+        $this->actingAs($this->user)->get(route('export.transactions', ['range' => 'today']));
+
+        $this->assertSame(
+            'Today · '.now()->format('M j, Y').' · All types',
             $this->rendered['exports.transactions']['scope'],
         );
     }

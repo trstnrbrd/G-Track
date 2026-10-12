@@ -1,7 +1,7 @@
 <x-app-layout>
 
     @php
-        $rangeOptions = ['today' => 'Today', 'week' => 'This Week', 'month' => 'This Month', 'all' => 'All Time', 'custom' => 'Custom Range'];
+        $rangeOptions = ['today' => 'Today', 'week' => 'Last 7 Days', 'month' => 'This Month', 'last30' => 'Last 30 Days', 'all' => 'All Time', 'custom' => 'Custom Range'];
         $typeOptions = ['all' => 'All Types', 'cash_in' => 'Cash In', 'cash_out' => 'Cash Out'];
     @endphp
 
@@ -103,37 +103,37 @@
                     <table class="w-full">
                         <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date &amp; Time</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
-                                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount</th>
-                                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Fee</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reference</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Recorded By</th>
-                                <th class="px-6 py-3"><span class="sr-only">Edit</span></th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date &amp; Time</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Fee</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reference</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Recorded By</th>
+                                <th class="px-4 py-3"><span class="sr-only">Edit</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
                             @foreach ($transactions as $txn)
                                 <tr class="hover:bg-gray-50 transition">
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-4 py-4 whitespace-nowrap">
                                         <p class="text-sm text-gray-900">{{ $txn->created_at->format('M j, Y') }}</p>
                                         <p class="text-xs text-gray-400">{{ $txn->created_at->format('g:i A') }}</p>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-4 py-4 whitespace-nowrap">
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold {{ $txn->isCashIn() ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700' }}">
                                             {{ $txn->isCashIn() ? 'Cash In' : 'Cash Out' }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-mono">{{ $txn->mobile_number ?: '—' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right tabular-nums">₱{{ number_format($txn->amount, 2) }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 font-mono">{{ $txn->mobile_number ?: '—' }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right tabular-nums">₱{{ number_format($txn->amount, 2) }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-right">
                                         <span class="text-sm text-gray-700 tabular-nums">₱{{ number_format($txn->service_charge, 2) }}</span>
                                         <span class="block text-[11px] text-gray-400">via {{ $txn->charge_paid_in === 'gcash' ? 'GCash' : 'cash' }}</span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{{ $txn->reference_number ?: '—' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $txn->user?->name ?? '—' }}</td>
-                                    <td class="px-6 py-2 whitespace-nowrap text-right">
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{{ $txn->reference_number ?: '—' }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ $txn->user?->name ?? '—' }}</td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-right">
                                         <x-edit-transaction-button :transaction="$txn" />
                                     </td>
                                 </tr>
@@ -142,9 +142,9 @@
                     </table>
                 </div>
 
-                @if ($transactions->hasPages())
-                    <div class="px-6 py-4 border-t border-gray-100">{{ $transactions->links() }}</div>
-                @endif
+                {{-- Always shown: "Showing 1–4 of 4" confirms nothing is hidden,
+                     and the page numbers appear once there is more than one page. --}}
+                <div class="px-6 py-4 border-t border-gray-100">{{ $transactions->links() }}</div>
             @endif
         </div>
     </div>
@@ -220,7 +220,7 @@
             </div>
         @endforelse
 
-        @if ($transactions->hasPages())
+        @if ($transactions->total() > 0)
             <div class="mt-4">{{ $transactions->links() }}</div>
         @endif
     </div>

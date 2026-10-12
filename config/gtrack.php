@@ -89,4 +89,17 @@ return [
     */
     'export_max_rows' => 500,
 
+    /*
+    |--------------------------------------------------------------------------
+    | Owner Password (seeder only)
+    |--------------------------------------------------------------------------
+    |
+    | The password the seeder gives the owner account when it CREATES it. Set
+    | GTRACK_ADMIN_PASSWORD in .env. Left empty, the seeder generates a random
+    | one and prints it once. Never put a real password in this file — the repo
+    | is on GitHub — and it is not read after the account exists.
+    |
+    */
+    'admin_password' => env('GTRACK_ADMIN_PASSWORD'),
+
 ];
