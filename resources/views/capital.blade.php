@@ -50,7 +50,7 @@
                 <p class="text-sm text-gray-500">Should be in GCash</p>
                 {{-- Neutral number + blue dot: blue means GCash, and the dot stays legible in the dark theme. --}}
                 <p class="mt-1 flex items-center gap-2 text-2xl font-bold text-gray-900 tabular-nums">
-                    <span class="w-2 h-2 rounded-full bg-gcash-600 shrink-0" aria-hidden="true"></span>₱{{ number_format($summary['expected'], 2) }}
+                    <span class="w-2 h-2 rounded-full bg-gcash-600 shrink-0" aria-hidden="true"></span>{{ $summary['expected'] < 0 ? '−' : '' }}₱{{ number_format(abs($summary['expected']), 2) }}
                 </p>
             </div>
         </div>
@@ -84,7 +84,12 @@
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-gray-200">
+                        @php($previousDay = null)
                         @foreach ($entries as $entry)
+                            @if ($entry->created_at->toDateString() !== $previousDay)
+                                <x-day-divider-row :date="$entry->created_at" :colspan="6" />
+                                @php($previousDay = $entry->created_at->toDateString())
+                            @endif
                             <tr>
                                 <td class="px-6 py-4 whitespace-nowrap">
                                     <p class="text-sm text-gray-900">{{ $entry->created_at->format('M j, Y') }}</p>
@@ -116,12 +121,12 @@
     {{-- ============================================================ --}}
     {{-- ===============   MOBILE VIEW (below lg)     =============== --}}
     {{-- ============================================================ --}}
-    <div class="lg:hidden max-w-md mx-auto min-h-screen bg-canvas px-5 py-6 pb-safe-nav">
+     <div class="lg:hidden max-w-md mx-auto min-h-screen bg-canvas px-3 py-3 pb-safe-nav">
 
-        <div class="rounded-xl border border-gray-200 bg-surface p-4">
+        <div class="rounded-xl border border-gray-200 bg-surface p-3">
             <p class="text-xs text-gray-500">Should be in GCash</p>
             <p class="mt-1 flex items-center gap-2 text-2xl font-bold text-gray-900 tabular-nums">
-                <span class="w-2 h-2 rounded-full bg-gcash-600 shrink-0" aria-hidden="true"></span>₱{{ number_format($summary['expected'], 2) }}
+                <span class="w-2 h-2 rounded-full bg-gcash-600 shrink-0" aria-hidden="true"></span>{{ $summary['expected'] < 0 ? '−' : '' }}₱{{ number_format(abs($summary['expected']), 2) }}
             </p>
             <p class="mt-1 text-xs text-gray-600">Capital − debt</p>
 
@@ -143,19 +148,24 @@
             @endif
         </p>
 
-        <div class="grid grid-cols-2 gap-3 mt-4">
+        <div class="grid grid-cols-2 gap-2 mt-3">
             <button type="button" onclick="gtrackOpenCapital('borrow')"
                     class="py-3 rounded-xl font-semibold text-white bg-gcash-600 hover:bg-gcash-700 transition active:scale-95">Borrow</button>
             <button type="button" onclick="gtrackOpenCapital('repay')"
                     class="py-3 rounded-xl font-semibold text-gray-700 bg-surface border border-gray-300 hover:bg-gray-50 transition active:scale-95">Repay</button>
         </div>
         <button type="button" onclick="gtrackOpenCapital('capital')"
-                class="mt-3 w-full py-3 rounded-xl font-semibold text-gray-700 bg-surface border border-gray-300 hover:bg-gray-50 transition active:scale-95">Add capital</button>
+                class="mt-2 w-full py-3 rounded-xl font-semibold text-gray-700 bg-surface border border-gray-300 hover:bg-gray-50 transition active:scale-95">Add capital</button>
 
-        <h2 class="text-gray-800 text-base font-bold mt-6 mb-3">Ledger</h2>
+        <h2 class="text-gray-800 text-base font-bold mt-4 mb-2">Ledger</h2>
 
+        @php($previousDay = null)
         @forelse ($entries as $entry)
-            <div class="bg-surface rounded-2xl border border-gray-200 p-4 mb-3">
+            @if ($entry->created_at->toDateString() !== $previousDay)
+                <x-day-divider :date="$entry->created_at" />
+                @php($previousDay = $entry->created_at->toDateString())
+            @endif
+            <div class="bg-surface rounded-xl border border-gray-200 px-3 py-2 mb-1.5">
                 <div class="flex items-start justify-between gap-3">
                     <div class="min-w-0">
                         <span class="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold bg-gray-100 text-gray-700">{{ $kindLabels[$entry->kind] ?? $entry->kind }}</span>
@@ -167,12 +177,12 @@
                     </div>
                     <div class="text-right shrink-0">
                         <p class="text-base font-bold text-gray-900 tabular-nums">₱{{ number_format($entry->amount, 2) }}</p>
-                        <p class="text-[11px] text-gray-500 mt-0.5">{{ $entry->created_at->format('M j, g:i A') }}</p>
+                        <p class="text-[11px] text-gray-500 mt-0.5">{{ $entry->created_at->format('g:i A') }}</p>
                     </div>
                 </div>
             </div>
         @empty
-            <div class="bg-surface rounded-2xl border border-gray-200 p-8 text-center">
+            <div class="bg-surface rounded-2xl border border-gray-200 p-6 text-center">
                 <p class="text-sm font-medium text-gray-900">Nothing recorded yet</p>
                 <p class="mt-1 text-xs text-gray-500">Start with "Add capital": enter the current capital and choose "Nothing moves".</p>
             </div>

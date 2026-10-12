@@ -19,7 +19,7 @@ class ExportController extends Controller
     public function transactions(Request $request): Response
     {
         $filters = $request->validate([
-            'range' => ['nullable', 'in:today,week,month,all,custom'],
+            'range' => ['nullable', 'in:today,week,month,last30,all,custom'],
             'type' => ['nullable', 'in:all,cash_in,cash_out'],
             'search' => ['nullable', 'string', 'max:50'],
             'from' => ['nullable', 'date'],
@@ -65,9 +65,9 @@ class ExportController extends Controller
         $inRange = DailySession::query();
 
         match ($range) {
-            'week' => $inRange->where('started_at', '>=', now()->startOfWeek()),
+            'week' => $inRange->where('started_at', '>=', today()->subDays(6)),
             'month' => $inRange->where('started_at', '>=', now()->startOfMonth()),
-            'last30' => $inRange->where('started_at', '>=', now()->subDays(30)),
+            'last30' => $inRange->where('started_at', '>=', today()->subDays(29)),
             default => null,
         };
 
@@ -89,9 +89,9 @@ class ExportController extends Controller
         return $this->pdf('exports.sessions', [
             'title' => 'Daily Balance Summary',
             'scope' => match ($range) {
-                'week' => 'This week · '.$this->span(now()->startOfWeek(), now()),
+                'week' => 'Last 7 days · '.$this->span(today()->subDays(6), now()),
                 'month' => 'This month · '.now()->format('F Y'),
-                'last30' => 'Last 30 days · '.$this->span(now()->subDays(30), now()),
+                'last30' => 'Last 30 days · '.$this->span(today()->subDays(29), now()),
                 default => 'All time',
             },
             'rows' => $rows,
@@ -164,10 +164,11 @@ class ExportController extends Controller
      */
     private function describeTransactionScope(array $filters): string
     {
-        $parts = [match ($filters['range'] ?? 'today') {
+        $parts = [match ($filters['range'] ?? 'all') {
             'today' => 'Today · '.now()->format('M j, Y'),
-            'week' => 'This week · '.$this->span(now()->startOfWeek(), now()),
+            'week' => 'Last 7 days · '.$this->span(today()->subDays(6), now()),
             'month' => 'This month · '.now()->format('F Y'),
+            'last30' => 'Last 30 days · '.$this->span(today()->subDays(29), now()),
             'custom' => $this->span(
                 isset($filters['from']) ? now()->parse($filters['from']) : null,
                 isset($filters['to']) ? now()->parse($filters['to']) : null,
@@ -200,10 +201,12 @@ class ExportController extends Controller
 
     private function applyTransactionFilters(Builder $query, array $filters): void
     {
-        match ($filters['range'] ?? 'today') {
+        // Same default as the History page, so the PDF matches what it shows.
+        match ($filters['range'] ?? 'all') {
             'today' => $query->whereDate('created_at', today()),
-            'week' => $query->where('created_at', '>=', now()->startOfWeek()),
+            'week' => $query->where('created_at', '>=', today()->subDays(6)),
             'month' => $query->where('created_at', '>=', now()->startOfMonth()),
+            'last30' => $query->where('created_at', '>=', today()->subDays(29)),
             'custom' => $this->applyCustomRange($query, $filters),
             default => null,
         };

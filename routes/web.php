@@ -7,6 +7,8 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ExportController;
 use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\SettingsController;
+use App\Http\Controllers\ShopSettingsController;
 use App\Http\Controllers\StoreSaleController;
 use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserManagementController;
@@ -39,11 +41,18 @@ Route::middleware(['auth', 'verified', 'owner'])->group(function () {
     Route::get('/user-management', [UserManagementController::class, 'index'])->name('user-management');
     Route::post('/user-management', [UserManagementController::class, 'store'])->name('user-management.store');
     Route::post('/user-management/{user}/password', [UserManagementController::class, 'resetPassword'])->name('user-management.password');
+
+    // The owner's shop settings and backup (Settings page)
+    Route::put('/settings/shop/rates', [ShopSettingsController::class, 'updateRates'])->name('settings.shop.rates');
+    Route::put('/settings/shop/quick-amounts', [ShopSettingsController::class, 'updateQuickAmounts'])->name('settings.shop.quick-amounts');
+    Route::put('/settings/shop/auto-close', [ShopSettingsController::class, 'updateAutoClose'])->name('settings.shop.auto-close');
+    Route::delete('/settings/shop/{setting}', [ShopSettingsController::class, 'reset'])->name('settings.shop.reset');
+    Route::get('/settings/backup', [ShopSettingsController::class, 'downloadBackup'])->name('settings.backup');
 });
 
-Route::get('/settings', function () {
-    return view('settings');
-})->middleware(['auth', 'verified'])->name('settings');
+Route::get('/settings', [SettingsController::class, 'index'])
+    ->middleware(['auth', 'verified'])
+    ->name('settings');
 
 Route::middleware('auth')->group(function () {
     // Daily session (Start Day / End Day)
@@ -65,6 +74,10 @@ Route::middleware('auth')->group(function () {
     // CSV exports (respect whatever filters the page currently has applied)
     Route::get('/export/transactions', [ExportController::class, 'transactions'])->name('export.transactions');
     Route::get('/export/sessions', [ExportController::class, 'sessions'])->name('export.sessions');
+
+    // My own settings: name / email, and signing out of other devices
+    Route::patch('/settings/profile', [SettingsController::class, 'updateProfile'])->name('settings.profile');
+    Route::post('/settings/sign-out-others', [SettingsController::class, 'signOutOtherDevices'])->name('settings.sign-out-others');
 
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
     Route::patch('/profile', [ProfileController::class, 'update'])->name('profile.update');

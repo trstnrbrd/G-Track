@@ -61,7 +61,7 @@ On macOS/Linux, use `cp .env.example .env` instead. Configure the database setti
 php artisan migrate --seed
 ```
 
-The seeder creates the initial login and balance row. Default login: `admin@gtrack.com` / `gtrack2026`. Change this password after setup; do not use the seeded credentials for a publicly accessible deployment.
+The seeder creates the owner login (`admin@gtrack.com`) and the balance row. The password is whatever you set as `GTRACK_ADMIN_PASSWORD` in `.env`; if that is empty, a random one is generated and printed once in the terminal. Change it in Settings after your first login. Re-running the seeder never changes an existing account's password.
 
 Start the Laravel and Vite development servers in separate terminals:
 

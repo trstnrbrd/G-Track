@@ -1,7 +1,7 @@
 <x-app-layout>
 
     @php
-        $rangeOptions = ['today' => 'Today', 'week' => 'This Week', 'month' => 'This Month', 'all' => 'All Time', 'custom' => 'Custom Range'];
+        $rangeOptions = ['today' => 'Today', 'week' => 'Last 7 Days', 'month' => 'This Month', 'last30' => 'Last 30 Days', 'all' => 'All Time', 'custom' => 'Custom Range'];
         $typeOptions = ['all' => 'All Types', 'cash_in' => 'Cash In', 'cash_out' => 'Cash Out'];
     @endphp
 
@@ -103,37 +103,42 @@
                     <table class="w-full">
                         <thead class="bg-gray-50 border-b border-gray-200">
                             <tr>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date &amp; Time</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
-                                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount</th>
-                                <th class="px-6 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Fee</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reference</th>
-                                <th class="px-6 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Recorded By</th>
-                                <th class="px-6 py-3"><span class="sr-only">Edit</span></th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Date &amp; Time</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Type</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Customer</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Amount</th>
+                                <th class="px-4 py-3 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">Fee</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Reference</th>
+                                <th class="px-4 py-3 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">Recorded By</th>
+                                <th class="px-4 py-3"><span class="sr-only">Edit</span></th>
                             </tr>
                         </thead>
                         <tbody class="divide-y divide-gray-200">
+                            @php($previousDay = null)
                             @foreach ($transactions as $txn)
+                                @if ($txn->created_at->toDateString() !== $previousDay)
+                                    <x-day-divider-row :date="$txn->created_at" :colspan="8" />
+                                    @php($previousDay = $txn->created_at->toDateString())
+                                @endif
                                 <tr class="hover:bg-gray-50 transition">
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-4 py-4 whitespace-nowrap">
                                         <p class="text-sm text-gray-900">{{ $txn->created_at->format('M j, Y') }}</p>
                                         <p class="text-xs text-gray-400">{{ $txn->created_at->format('g:i A') }}</p>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap">
+                                    <td class="px-4 py-4 whitespace-nowrap">
                                         <span class="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold {{ $txn->isCashIn() ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700' }}">
                                             {{ $txn->isCashIn() ? 'Cash In' : 'Cash Out' }}
                                         </span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700 font-mono">{{ $txn->mobile_number ?: '—' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right tabular-nums">₱{{ number_format($txn->amount, 2) }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-right">
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-700 font-mono">{{ $txn->mobile_number ?: '—' }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm font-bold text-gray-900 text-right tabular-nums">₱{{ number_format($txn->amount, 2) }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-right">
                                         <span class="text-sm text-gray-700 tabular-nums">₱{{ number_format($txn->service_charge, 2) }}</span>
                                         <span class="block text-[11px] text-gray-400">via {{ $txn->charge_paid_in === 'gcash' ? 'GCash' : 'cash' }}</span>
                                     </td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{{ $txn->reference_number ?: '—' }}</td>
-                                    <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-500">{{ $txn->user?->name ?? '—' }}</td>
-                                    <td class="px-6 py-2 whitespace-nowrap text-right">
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500 font-mono">{{ $txn->reference_number ?: '—' }}</td>
+                                    <td class="px-4 py-4 whitespace-nowrap text-sm text-gray-500">{{ $txn->user?->name ?? '—' }}</td>
+                                    <td class="px-4 py-2 whitespace-nowrap text-right">
                                         <x-edit-transaction-button :transaction="$txn" />
                                     </td>
                                 </tr>
@@ -142,9 +147,9 @@
                     </table>
                 </div>
 
-                @if ($transactions->hasPages())
-                    <div class="px-6 py-4 border-t border-gray-100">{{ $transactions->links() }}</div>
-                @endif
+                {{-- Always shown: "Showing 1–4 of 4" confirms nothing is hidden,
+                     and the page numbers appear once there is more than one page. --}}
+                <div class="px-6 py-4 border-t border-gray-100">{{ $transactions->links() }}</div>
             @endif
         </div>
     </div>
@@ -152,13 +157,13 @@
     {{-- ============================================================ --}}
     {{-- ===============   MOBILE VIEW (below lg)     =============== --}}
     {{-- ============================================================ --}}
-    <div class="lg:hidden max-w-md mx-auto min-h-screen bg-canvas px-5 py-6 pb-safe-nav">
+     <div class="lg:hidden max-w-md mx-auto min-h-screen bg-canvas px-3 py-3 pb-safe-nav">
 
         {{-- Filters --}}
-        <form method="GET" action="{{ route('history') }}" class="bg-surface rounded-2xl shadow-sm p-4 mb-5 space-y-3">
-            <div class="grid grid-cols-2 gap-3">
+        <form method="GET" action="{{ route('history') }}" class="bg-surface rounded-2xl shadow-sm p-3 mb-2 space-y-2">
+            <div class="grid grid-cols-2 gap-2">
                 <div>
-                    <label class="block text-xs font-medium text-gray-600 mb-1.5">Date Range</label>
+                    <label class="block text-xs font-medium text-gray-600 mb-1">Date Range</label>
                     <select name="range" class="w-full px-3 py-2 border border-gray-300 rounded-lg text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500">
                         @foreach ($rangeOptions as $value => $label)
                             @continue($value === 'custom')
@@ -183,35 +188,42 @@
         </form>
 
         {{-- Summary — same component as the Dashboard --}}
-        <div class="mb-5">
+        <div class="mb-3">
             @include('partials.stat-cards', ['totals' => $summary, 'compact' => true])
         </div>
 
         {{-- Transaction cards --}}
-        <h2 class="text-gray-800 text-base font-bold mb-3">Transaction History</h2>
+        <h2 class="text-gray-800 text-base font-bold mb-2">Transaction History</h2>
 
+        @php($previousDay = null)
         @forelse ($transactions as $txn)
-            <div class="bg-surface rounded-2xl shadow-sm p-4 mb-3">
-                <div class="flex items-start justify-between gap-3">
+            @if ($txn->created_at->toDateString() !== $previousDay)
+                <x-day-divider :date="$txn->created_at" />
+                @php($previousDay = $txn->created_at->toDateString())
+            @endif
+            {{-- Compact: the edit pencil lives in the card (bottom right) rather than
+                 in its own footer row, and the fee and time share a line. --}}
+            <div class="bg-surface rounded-xl shadow-sm px-3 py-2 mb-1.5">
+                <div class="flex items-start justify-between gap-2">
                     <div class="min-w-0">
-                        <span class="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold {{ $txn->isCashIn() ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700' }}">
+                        <span class="inline-flex px-2 py-0.5 rounded-full text-[11px] font-semibold leading-tight {{ $txn->isCashIn() ? 'bg-green-100 text-green-700' : 'bg-blue-100 text-blue-700' }}">
                             {{ $txn->isCashIn() ? 'Cash In' : 'Cash Out' }}
                         </span>
-                        <p class="text-sm text-gray-700 mt-1.5 truncate font-mono">{{ $txn->mobile_number ?: '—' }}</p>
-                        <p class="text-xs text-gray-400 font-mono truncate">Ref {{ $txn->reference_number ?: 'N/A' }}</p>
+                        <p class="text-sm text-gray-700 mt-1 truncate font-mono leading-tight">{{ $txn->mobile_number ?: '—' }}</p>
+                        <p class="text-xs text-gray-500 font-mono truncate leading-tight">Ref {{ $txn->reference_number ?: 'N/A' }}</p>
                     </div>
-                    <div class="text-right shrink-0">
-                        <p class="text-base font-bold text-gray-900 tabular-nums">₱{{ number_format($txn->amount, 2) }}</p>
-                        <p class="text-xs text-amber-600 font-medium">+₱{{ number_format($txn->service_charge, 2) }} fee</p>
-                        <p class="text-[11px] text-gray-400 mt-0.5">{{ $txn->created_at->format('M j, g:i A') }}</p>
+                    <div class="flex shrink-0 flex-col items-end text-right">
+                        <p class="text-base font-bold text-gray-900 tabular-nums leading-tight">₱{{ number_format($txn->amount, 2) }}</p>
+                        <p class="text-[11px] leading-tight">
+                            <span class="text-amber-600 font-medium">+₱{{ number_format($txn->service_charge, 2) }} fee</span>
+                            <span class="text-gray-500">· {{ $txn->created_at->format('g:i A') }}</span>
+                        </p>
+                        <x-edit-transaction-button :transaction="$txn" compact class="-mr-1.5 -mb-1 mt-0.5" />
                     </div>
-                </div>
-                <div class="mt-3 pt-2 border-t border-gray-100 flex justify-end">
-                    <x-edit-transaction-button :transaction="$txn" label />
                 </div>
             </div>
         @empty
-            <div class="bg-surface rounded-2xl shadow-sm p-8 text-center text-gray-400">
+            <div class="bg-surface rounded-2xl shadow-sm p-6 text-center text-gray-400">
                 <svg class="w-12 h-12 mx-auto mb-3 opacity-50" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5">
                     <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v6h4.5m4.5 0a9 9 0 11-18 0 9 9 0 0118 0z"/>
                 </svg>
@@ -220,7 +232,7 @@
             </div>
         @endforelse
 
-        @if ($transactions->hasPages())
+        @if ($transactions->total() > 0)
             <div class="mt-4">{{ $transactions->links() }}</div>
         @endif
     </div>

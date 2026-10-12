@@ -263,6 +263,25 @@ class CapitalTest extends TestCase
             ->assertSee('Grocery');
     }
 
+    public function test_the_ledger_names_each_day_and_shows_a_shortfall_with_a_minus_sign(): void
+    {
+        CapitalEntry::create(['user_id' => $this->user->id, 'kind' => CapitalEntry::KIND_BORROW, 'amount' => 500, 'balance' => 'cash']);
+
+        $older = CapitalEntry::create(['user_id' => $this->user->id, 'kind' => CapitalEntry::KIND_CAPITAL, 'amount' => 100]);
+        $older->forceFill(['created_at' => now()->subDays(2)])->save();
+
+        $html = $this->actingAs($this->user)->get(route('capital'))->assertOk()->getContent();
+
+        // Two days, in both layouts.
+        $this->assertSame(4, substr_count($html, 'role="separator"'));
+        $this->assertStringContainsString('Today · '.now()->format('D, M j'), $html);
+        $this->assertStringContainsString(now()->subDays(2)->format('D, M j'), $html);
+
+        // Capital 100 − debt 500 = −400: "−₱400.00", never "₱-400.00".
+        $this->assertStringContainsString('−₱400.00', $html);
+        $this->assertStringNotContainsString('₱-400.00', $html);
+    }
+
     public function test_guests_cannot_see_or_record_anything(): void
     {
         $this->get(route('capital'))->assertRedirect(route('login'));

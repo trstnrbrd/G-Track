@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Support\ShopSettings;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
@@ -38,7 +39,8 @@ class Transaction extends Model
      */
     public static function serviceChargeFor(float $amount): float
     {
-        foreach (config('gtrack.service_charge_brackets') as $bracket) {
+        // Owner-editable in Settings; config/gtrack.php holds the defaults.
+        foreach (ShopSettings::serviceChargeBrackets() as $bracket) {
             if ($bracket['up_to'] === null || $amount <= $bracket['up_to']) {
                 return (float) $bracket['fee'];
             }
